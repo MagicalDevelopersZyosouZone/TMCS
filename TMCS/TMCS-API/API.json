@@ -1,0 +1,111 @@
+﻿[ 
+  //Account
+  {
+    "Register": {
+      "params": [
+        "uid",
+        "pwdEncrypted",
+        {
+          "name": "userInfo",
+          "members": [ "uid", "name", "faceUrl" ]
+        }
+      ],
+      "returns": [ "errCode" ,"msg"]
+    },
+
+    "Login": {
+      "params": [ "uid", "pwdEncrypted" ],
+      "returns": [ "errCode","msg", "token" ]
+    },
+
+    "GetInfo": {
+      "params": [ "uid" ],
+      "returns": [
+        "errCode",
+        "msg",
+        {
+          "name": "userInfo",
+          "members": [ "uid", "name", "faceUrl" ]
+        }
+      ]
+    },
+
+    //TODO
+    "SetInfo": {
+      "params": [
+        "uid",
+        {
+          "name": "userInfo",
+          "members": [ "name", "faceUrl" ]
+        }
+      ],
+      "returns": ["errCode","msg"]
+    }
+  },
+
+  //TMCS
+  {
+    "Login": {
+      "params": [ "token" ],
+      "returns": [ "errCode", "msg" ]
+    },
+
+    "Logout": {
+      "params": null,
+      "returns": [ "errCode", "msg" ]
+    },
+
+    "GetFriends": {
+      "params": null,
+      "returns": [
+        "errCode",
+        "msg",
+        {
+          "name": "friends",
+          "type": "array",
+          "item": [ "uid" ]
+        }
+      ]
+    },
+
+    "AddFriend": {
+      "params": [ "targetUID" ],
+      "returns": [ "errCode", "msg" ]
+    },
+    "SearchUser": {
+      "params": [ "targetName" ],
+      "returns": [ "errCode", "msg" ]
+    },
+
+    "GetMessages": {
+      "params": [ "targetUid", "timestamp", "count" ],
+      "returns": [
+        "errCode",
+        "msg",
+        {
+          "name": "massages",
+          "type": "array",
+          "item": [ "timestamp", "messageText" ]
+        }
+      ]
+    },
+
+    "SendMessages": {
+      "params": [
+        "targetUid",
+        {
+          "name": "messages",
+          "type": "array",
+          "item": [ "relativeTime", "messageText" ]
+        }
+      ]
+      "returns": [ "errCode", "msg" ]
+    },
+
+    //TODO
+    "DeleteFriend": {
+      "params": [ "targetUid" ],
+      "returns": ["errCode","msg"]
+    }
+  }
+]
