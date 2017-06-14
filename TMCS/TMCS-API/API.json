@@ -1,4 +1,4 @@
-﻿[ 
+﻿[
   //Account
   {
     "Register": {
@@ -10,12 +10,12 @@
           "members": [ "uid", "name", "faceUrl" ]
         }
       ],
-      "returns": [ "errCode" ,"msg"]
+      "returns": [ "errCode", "msg" ]
     },
 
     "Login": {
       "params": [ "uid", "pwdEncrypted" ],
-      "returns": [ "errCode","msg", "token" ]
+      "returns": [ "errCode", "msg", "token" ]
     },
 
     "GetInfo": {
@@ -39,14 +39,14 @@
           "members": [ "name", "faceUrl" ]
         }
       ],
-      "returns": ["errCode","msg"]
+      "returns": [ "errCode", "msg" ]
     }
   },
 
   //TMCS
   {
     "Login": {
-      "params": [ "token" ],
+      "params": [ "uid", "token" ],
       "returns": [ "errCode", "msg" ]
     },
 
@@ -69,12 +69,21 @@
     },
 
     "AddFriend": {
-      "params": [ "targetUID" ],
+      "params": [ "targetUid" ],
       "returns": [ "errCode", "msg" ]
     },
-    "SearchUser": {
+
+    "SearchUsers": {
       "params": [ "targetName" ],
-      "returns": [ "errCode", "msg" ]
+      "returns": [
+        "errCode",
+        "msg",
+        {
+          "name": "users",
+          "type": "array",
+          "item": [ "uid", "name" ]
+        }
+      ]
     },
 
     "GetMessages": {
@@ -102,10 +111,18 @@
       "returns": [ "errCode", "msg" ]
     },
 
+    "PushMessages": {
+      "params": {
+        "name": "messages",
+        "type": "array",
+        "item": [ "senderUid", "timestamp", "messageText" ]
+      }
+    },
+
     //TODO
     "DeleteFriend": {
       "params": [ "targetUid" ],
-      "returns": ["errCode","msg"]
+      "returns": [ "errCode", "msg" ]
     }
   }
 ]
