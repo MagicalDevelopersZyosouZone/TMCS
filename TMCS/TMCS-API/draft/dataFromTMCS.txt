@@ -1,0 +1,19 @@
+﻿//Data from TMCS
+{
+  Push
+  {
+	[
+		{
+			type: < Text | Img | Video | Audio | Delete | Edit >
+			data: string
+		}
+	]
+  }
+
+  Response
+  {
+	rid: number
+	data: string
+  }
+
+}

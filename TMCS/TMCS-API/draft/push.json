@@ -1,0 +1,42 @@
+﻿//Push
+{
+  "type": "Push",
+  "data": [
+    // Text
+    {
+      "id": 0,
+      "timestamp": 0,
+      "sender": "user",
+      "text": ""
+    },
+    //Img
+    {
+      "id": 0,
+      "timestamp": 0,
+      "sender": "user",
+      "url": "url"
+    },
+    //Audio
+    {
+      "id": 0,
+      "timestamp": 0,
+      "sender": "user",
+      "url": "url"
+    },
+    //Video
+    {
+      "id": 0,
+      "timestamp": 0,
+      "sender": "user",
+      "url": "url"
+    },
+    //Delete
+    {
+      "id": 0,
+      "timestamp": 0,
+      "sender": "user",
+      "url": "url"
+    }
+  ]
+}
+

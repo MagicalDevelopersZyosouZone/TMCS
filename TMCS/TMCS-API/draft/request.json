@@ -1,0 +1,6 @@
+﻿{
+  "type": "Request"
+  "rid": 0,
+  "api": "ApiName",
+  "params": { }
+}

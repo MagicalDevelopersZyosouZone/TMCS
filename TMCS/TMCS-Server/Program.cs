@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace TMCS_Server
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {
+
         }
     }
 }
