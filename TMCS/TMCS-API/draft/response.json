@@ -1,5 +1,8 @@
-﻿{
-  "type": "Response",
-  "rid": 0,
-  "data": { }
+﻿// This package will be sent by the TMCS server to the client
+{
+  //"type": "Response", /* removable */
+  "rid": 0, // Request ID
+            /* Used to find the request callback waiting this response.
+            If rid==-1, this package contain the messages pushed by the TMCS server. */
+  "data": {}
 }

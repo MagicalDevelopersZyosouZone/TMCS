@@ -1,6 +1,7 @@
-﻿{
-  "type": "Request"
-  "rid": 0,
-  "api": "ApiName",
-  "params": { }
+﻿// This package will be sent by the client to the TMCS server.
+{
+  //"type": "Request"  /* Removable */
+  "rid": 0, // Request ID  >= 0   /* Used to find the relevant response. */
+  "api": "ApiName", // The name or id of the API
+  "params": {} 
 }
