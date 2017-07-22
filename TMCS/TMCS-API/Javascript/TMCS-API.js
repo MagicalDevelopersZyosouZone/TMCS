@@ -1,5 +1,31 @@
 ﻿(function ()
 {
+    if (!window.JSEncrypt)
+    {
+        loadLib("/Javascript/lib/jsencrypt/jsencrypt.min.js");
+        var encrypt = new JSEncrypt({ default_key_size: 1024 });
+        encrypt.getKey(function ()
+        {
+            document.write(encrypt.getPublicKey() + "<br>" + encrypt.getPrivateKey());
+        });
+    }
+
+    function loadLib(url)
+    {
+        var request = new XMLHttpRequest();
+        request.open("GET", url, false);
+        request.send();
+        if (request.readyState != 4)
+            throw new Error("Network error.");
+        try
+        {
+            eval.call(window, request.responseText);
+        }
+        catch (ex)
+        {
+            throw ex;
+        }
+    }
     function Queue()
     {
         function Node(obj)
@@ -13,7 +39,7 @@
         this.in = function (obj)
         {
             var p = new Node(obj);
-            if(this.head==null)
+            if (!this.head)
             {
                 this.head = p;
                 this.tail = p;
@@ -24,7 +50,7 @@
                 this.tail = p;
             }
             this.length++;
-        }
+        };
         this.out = function (obj)
         {
             if (!this.head)
@@ -37,7 +63,7 @@
                 this.tail = this.head = null;
             this.length--;
             return p.obj;
-        }
+        };
     }
 
     //ArrayList
@@ -55,12 +81,12 @@
             {
                 throw new Error("Invalid index.");
             }
-            for (var i = this.length-1; i >=index; i--)
+            for (var i = this.length - 1; i >= index; i--)
             {
                 this[i + 1] = this[i];
             }
             this[index] = obj;
-        }
+        };
         list.removeAt = function (index)
         {
             if (isNaN(index) || index < 0 || index >= list.length)
@@ -72,12 +98,12 @@
                 list[i] = list[i + 1];
             }
             list.length -= 1;
-        }
+        };
         list.remove = function (obj)
         {
             for (var i = 0; i < list.length; i++)
             {
-                if (list[i] == obj)
+                if (list[i] === obj)
                 {
                     for (; i < list.length - 1; i++)
                     {
@@ -88,11 +114,11 @@
                 }
             }
             throw new Error("Object not found.");
-        }
+        };
         list.clear = function ()
         {
             list.length = 0;
-        }
+        };
         list.addRange = function (arr, startIndex, count)
         {
             if (!startIndex || isNaN(startIndex))
@@ -103,11 +129,11 @@
             {
                 list[list.length] = arr[i];
             }
-        }
+        };
         list.contain = function (obj)
         {
-            return (list.indexOf(obj) >= 0);
-        }
+            return list.indexOf(obj) >= 0;
+        };
         return list;
     }
 
@@ -119,53 +145,53 @@
             this.handlers=ArrayList();
         }
         Event.version = 0.1;
-        Event.prototype.invoke=function(args)
+        Event.prototype.invoke = function (args)
         {
-            if(!args["handled"])
-                args.handled=false;
-            if(this.def)
+            if (!args["handled"])
+                args.handled = false;
+            if (this.def)
                 this.def(args);
-            for(var i=0;i<this.handlers.length;i++)
+            for (var i = 0; i < this.handlers.length; i++)
             {
-                if(args.handled)
+                if (args.handled)
                     return;
-                if(this.handlers[i])
+                if (this.handlers[i])
                     this.handlers[i](args);
             }
-        }
-        Event.prototype.add=function(handler)
+        };
+        Event.prototype.add = function (handler)
         {
-            
+
             this.handlers.add(handler);
-        }
-        Event.prototype.remove=function(handler)
+        };
+        Event.prototype.remove = function (handler)
         {
-            if(this.def==handler)
-                this.def=null;
+            if (this.def === handler)
+                this.def = null;
             this.handlers.remove(handler);
-        }
+        };
         
         function EventManager()
         {
             this.events={};
             this.eventNames=ArrayList();
         }
-        EventManager.prototype.register=function(name,event)
+        EventManager.prototype.register = function (name, event)
         {
-            if(name==undefined || name==null)
+            if (name === undefined || name === null)
                 throw new Error("A name of the event required.");
-            if(this.eventNames.indexOf(name)>0)
+            if (this.eventNames.indexOf(name) > 0)
                 throw new Error("Event existed.");
-            this.events[name]=event;
+            this.events[name] = event;
             this.eventNames.add(name);
-        }
+        };
         Event.EventManager=EventManager;
         
         function defineEvent(obj,name,handler)
         {
             if(!obj)
                 throw new Error("An object required.");
-            if(name==undefined || name==null)
+            if(name===undefined || name===null)
                 throw new Error("A name of the event required.");
             if(!obj.eventManager)
             {
@@ -177,16 +203,16 @@
                 throw new Error("Event existed.");
             var event=new Event();
             obj.eventManager.register(name);
-            Object.defineProperty(obj,name,{
-                get:function()
+            Object.defineProperty(obj, name, {
+                get: function ()
                 {
                     return event;
                 },
-                set:function(handler)
+                set: function (handler)
                 {
-                    event.def=handler;
+                    event.def = handler;
                 }
-            })
+            });
         }
         Event.defineEvent=defineEvent;
         return Event;
@@ -210,33 +236,33 @@
         Object.defineProperty(this, "connected", {
             get: function ()
             {
-                if (self.websocket.readyState == WebSocket.OPEN)
+                if (self.websocket.readyState === WebSocket.OPEN)
                     return true;
                 return false;
             }
-        })
+        });
     }
     TMCS.prototype.messageCallback = function (e)
     {
         var data = JSON.parse(e.data);
-        if (data.type == "Msg")
+        if (data.rid < 0)
         {
             var msgList = data.data;
             this.onMessage.invoke(msgList);
         }
-        else if (data.type == "Response")
+        else
         {
             for (var i = 0; i < this.requests.length; i++)
             {
-                if (this.requests[i].rid == data.rid && this.requests[i].callback)
+                if (this.requests[i].rid === data.rid && this.requests[i].callback)
                     this.requests[i].callback(data.data);
             }
         }
-    }
+    };
     TMCS.prototype.errorCallback = function (e)
     {
-        
-    }
+
+    };
     TMCS.prototype.connect = function (url, protocols)
     {
         if (this.websocket && this.connected)
@@ -249,8 +275,8 @@
         {
             self.websocket.onmessage = self.messageCallback;
             this.websocket.onerror = this.errorCallback;
-        }
-    }
+        };
+    };
     var ridAcmlt = 0;
     TMCS.prototype.apiCall = function (apiName, params, callback)
     {
@@ -263,89 +289,89 @@
         var requireJSON = JSON.stringify(request);
         this.requests.add(new Request(request.rid, apiName, params, callback));
         this.websocket.send(requireJSON);
-    }
+    };
     TMCS.prototype.login = function (uid, token, callback)
     {
-        this.apiCall("Login", { uid:uid, token: token }, function (result)
+        this.apiCall("Login", { uid: uid, token: token }, function (result)
         {
             if (!callback)
                 return;
-            if (result.errCode == 0)
+            if (result.errCode === 0)
                 callback({ errCode: result.errCode, msg: result.msg });
             else
                 callback({ errCode: result.errCode, msg: result.msg });
         });
-    }
+    };
     TMCS.prototype.logout = function (callback)
     {
         this.apiCall("Logout", {}, function (result)
         {
             if (!callback)
                 return;
-            if (result.errCode == 0)
+            if (result.errCode === 0)
                 callback({ errCode: result.errCode, msg: result.msg });
             else
                 callback({ errCode: result.errCode, msg: result.msg });
         });
-    }
+    };
     TMCS.prototype.getFriends = function (callback)
     {
         this.apiCall("GetFriends", {}, function (result)
         {
             if (!callback)
                 return;
-            if (result.errCode == 0)
+            if (result.errCode === 0)
                 callback({ errCode: result.errCode, msg: result.msg, friends: result.friends });
             else
                 callback({ errCode: result.errCode, msg: result.msg, friends: [] });
         });
-    }
+    };
     TMCS.prototype.addFriend = function (uid, callback)
     {
         this.apiCall("AddFriend", { targetUid: uid }, function (result)
         {
             if (!callback)
                 return;
-            if (result.errCode == 0)
+            if (result.errCode === 0)
                 callback({ errCode: result.errCode, msg: result.msg });
             else
                 callback({ errCode: result.errCode, msg: result.msg });
         });
-    }
+    };
     TMCS.prototype.searchUsers = function (name, callback)
     {
         this.apiCall("SearchUsers", { targetName: name }, function (result)
         {
             if (!callback)
                 return;
-            if (result.errCode == 0)
+            if (result.errCode === 0)
                 callback({ errCode: result.errCode, msg: result.msg, users: result.users });
             else
                 callback({ errCode: result.errCode, msg: result.msg, users: [] });
         });
-    }
+    };
     TMCS.prototype.getMessages = function (targetUid, timestamp, count, callback)
     {
         this.apiCall("GetMessages", { targetUid: targetUid, timestamp: timestamp, count: count }, function (result)
         {
             if (!callback)
                 return;
-            if (result.errCode == 0)
+            if (result.errCode === 0)
                 callback({ errCode: result.errCode, msg: result.msg, messages: result.messages });
             else
                 callback({ errCode: result.errCode, msg: result.msg, messages: [] });
         });
-    }
+    };
     TMCS.prototype.sendMessages = function (targetUid, messages, callback)
     {
         this.apiCall("SendMessages", { targetUid: targetUid, messages: messages }, function (result)
         {
             if (!callback)
                 return;
-            if (result.errCode == 0)
+            if (result.errCode === 0)
                 callback({ errCode: result.errCode, msg: result.msg });
             else
                 callback({ errCode: result.errCode, msg: result.msg });
         });
-    }
+    };
 })();

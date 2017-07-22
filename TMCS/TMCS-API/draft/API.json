@@ -13,6 +13,16 @@
       "returns": [ "errCode", "msg" ]
     },
 
+    "GetLoginInfo": {
+      "params": [ "uid" ],
+      "returns": [
+        "errCode",
+        "msg",
+        "authType",
+        "code"
+      ]
+    },
+
     "Login": {
       "params": [ "uid", "pwdEncrypted" ],
       "returns": [ "errCode", "msg", "token" ]
@@ -107,7 +117,7 @@
           "type": "array",
           "item": [ "relativeTime", "messageText" ]
         }
-      ]
+      ],
       "returns": [ "errCode", "msg" ]
     },
 
