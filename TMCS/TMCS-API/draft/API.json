@@ -47,6 +47,13 @@
       ]
     },
 
+    "SetSecretKey": {
+      "params": [
+        "pubKey",
+        "prvKeyEnc"
+      ]
+    },
+
     // 密钥等安全信息也用这个 API 来改吗？
     "SetInfo": {
       "params": [
