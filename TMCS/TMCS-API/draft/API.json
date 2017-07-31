@@ -1,6 +1,6 @@
 ﻿// '...' 有单引号为字面值，否则为标识符
 // [...] 可选
-// { ... | ... } 单选
+// { ... | ... } 必填的单选参数
 // ["..."] 数组（方括号在 JSON 字符串外部）
 //
 // 仅在操作失败时返回 code，值为负数
@@ -26,6 +26,7 @@
       ],
       "returns": [
         "authType: { 'password' | 'privateKey' }" // 不是必须的，少暴露一些信息（例如有效的用户名）可以防止社工
+        //-- 通过Search还是可以查到的，
       ]
     },
 
@@ -50,11 +51,12 @@
     "SetSecretKey": {
       "params": [
         "pubKey",
-        "prvKeyEnc"
+        "[ prvKeyEnc ]" // If auth by password, send the privateKey encrypted with password? to the TMCS server.
       ]
     },
 
     // 密钥等安全信息也用这个 API 来改吗？
+    //-- NO 用上面那个SetSecretKey
     "SetInfo": {
       "params": [
         "userId",
@@ -85,7 +87,8 @@
       ]
     },
 
-    "PullRoamingMessages": {
+    // Pull roaming messages from TMCS server
+    "PullMessages": {
       "params": [ "userId", "timestamp", "count" ],
       "returns": [
         [ "timestamp", "message" ]
