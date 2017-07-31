@@ -1,4 +1,14 @@
-﻿[
+﻿// '...' 有单引号为字面值，否则为标识符
+// [...] 可选
+// { ... | ... } 单选
+// ["..."] 数组（方括号在 JSON 字符串外部）
+//
+// 仅在操作失败时返回 code，值为负数
+// 无需返回任何数据时一律 return { code: 0 } ← 待议
+//
+// 草案完成后可以缩写标识符以节省数据流量
+
+[
   //Account
   {
     "Register": {
@@ -7,129 +17,97 @@
         "publicKey",
         "[passwordHash]"
       ],
-      "returns": [ "[errorCode]", "message" ]
+      "returns": []
     },
 
     "GetLoginInfo": {
-      "params": [ "userId" ],
+      "params": [
+        "userId"
+      ],
       "returns": [
-        "errorCode",
-        "message",
-        "authType",
-        "code"
+        "authType: { 'password' | 'privateKey' }" // 不是必须的，少暴露一些信息（例如有效的用户名）可以防止社工
       ]
     },
 
     "Login": {
-      "params": [ "userId", "passwordHash" ],
-      "returns": [ "errorCode", "message", "token" ]
+      "params": [
+        "userId",
+        "{ privateKey | passwordHash }"
+      ],
+      "returns": []
     },
 
     "GetInfo": {
-      "params": [ "userId" ],
+      "params": [
+        "userId"
+      ],
       "returns": [
-        "errorCode",
-        "message",
-        {
-          "name": "userInfo",
-          "members": [ "userId", "name", "faceUrl" ]
-        }
+        "name",
+        "publicKey"
       ]
     },
 
-    //TODO
+    // 密钥等安全信息也用这个 API 来改吗？
     "SetInfo": {
       "params": [
         "userId",
-        {
-          "name": "userInfo",
-          "members": [ "name", "faceUrl" ]
-        }
+        [ "key: value" ]
       ],
-      "returns": [ "errorCode", "message" ]
+      "returns": []
     }
   },
 
   //TMCS
   {
-    "Login": {
-      "params": [ "userId", "token" ],
-      "returns": [ "errorCode", "message" ]
-    },
-
-    "Logout": {
-      "params": null,
-      "returns": [ "errorCode", "message" ]
-    },
-
-    "GetFriends": {
-      "params": null,
+    "GetFriendList": {
+      "params": [],
       "returns": [
-        "errorCode",
-        "message",
-        {
-          "name": "friends",
-          "type": "array",
-          "item": [ "userId" ]
-        }
+        [ "userId" ]
       ]
     },
 
     "AddFriend": {
-      "params": [ "targetuserId" ],
-      "returns": [ "errorCode", "message" ]
+      "params": [ "userId" ],
+      "returns": []
     },
 
     "SearchUsers": {
-      "params": [ "targetName" ],
+      "params": [ "name" ],
       "returns": [
-        "errorCode",
-        "message",
-        {
-          "name": "users",
-          "type": "array",
-          "item": [ "userId", "name" ]
-        }
+        [ "userId" ]
       ]
     },
 
-    "GetMessages": {
-      "params": [ "targetuserId", "timestamp", "count" ],
+    "PullRoamingMessages": {
+      "params": [ "userId", "timestamp", "count" ],
       "returns": [
-        "errorCode",
-        "message",
-        {
-          "name": "massages",
-          "type": "array",
-          "item": [ "timestamp", "messageText" ]
-        }
+        [ "timestamp", "message" ]
       ]
     },
 
-    "SendMessages": {
+    "SendMessage": {
       "params": [
-        "targetuserId",
-        {
-          "name": "messages",
-          "type": "array",
-          "item": [ "relativeTime", "messageText" ]
-        }
+        "userId",
+        //"relativeTime",
+        "message"
       ],
-      "returns": [ "errorCode", "message" ]
+      "returns": []
     },
 
-    "PushMessages": {
-      "params": {
-        "name": "messages",
-        "type": "array",
-        "item": [ "senderuserId", "timestamp", "messageText" ]
-      }
-    },
+    //"PushMessages": {
+    //  "params": {
+    //    "name": "messages",
+    //    "type": "array",
+    //    "item": [ "senderuserId", "timestamp", "messageText" ]
+    //  }
+    //},
 
     //TODO
     "DeleteFriend": {
-      "params": [ "targetuserId" ],
-      "returns": [ "errorCode", "message" ]
+      "params": [
+        "userId"
+      ],
+      "returns": []
     }
   }
 ]
