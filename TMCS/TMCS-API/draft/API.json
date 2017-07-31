@@ -40,7 +40,13 @@
       ]
     },
 
-    //TODO
+    "SetSecretKey": {
+      "params": [
+        "pubKey",
+        "prvKeyEnc"
+      ]
+    },
+
     "SetInfo": {
       "params": [
         "uid",
