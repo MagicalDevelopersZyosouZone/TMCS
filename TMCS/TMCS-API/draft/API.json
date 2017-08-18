@@ -104,6 +104,11 @@
       "returns": []
     },
 
+    "“SetUnreadTime”": {
+      "params": [ "time" ],
+      "returns": []
+    },
+
     //"PushMessages": {
     //  "params": {
     //    "name": "messages",

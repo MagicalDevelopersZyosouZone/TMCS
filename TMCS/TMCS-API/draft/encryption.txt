@@ -1,19 +1,19 @@
 ﻿// 对于使用密码进行登陆验证的用户，注册和登陆时，客户端发送给服务器的密码Hash值，服务器将此进一步计算Hash并储存或用于比对校验
 // pwd: 输入的密码明文
 // pwdHash: 计算出的密码Hash值
-// salt: 由服务器颁发的随机字符串，用于混合密码明文计算hash值，服务器保证在该密码生效的时间内salt不发生变动，并随时透明公开。
+// saltPwd: 每次设置密码时由客户端生成的随机字符串，用于混合密码明文计算hash值，服务器储存并保证在该密码生效的时间内salt不变，并随时透明公开。
 Register&Login Password:
-	pwdHash = SHA512( SHA256( MD5(pwd) + salt ) + salt )
+	pwdHash = SHA512(pwd + saltPwd)
 
 // 对于使用密码进行登陆验证，并信任服务器而将私钥保存在服务器的用户，设置或变更用于消息加密的RSA密钥时，对于私钥的加密算法
 // pwd: 用户的密码明文
 // pwdHash: 用户密码的Hash值，作为AES加密的密码
-// salt: 由服务器颁发的随机字符串，用于混合密码明文计算hash值，服务器保证在该密码生效的时间内salt不发生变动，并随时透明公开。
+// saltSymKey: 在设置用户非对称密钥对时，由客户端生成的，用于混合密码明文计算hash值，服务器储存并保证在该密码生效的时间内salt不发生变动，并随时透明公开。
 // SecretKeyEnc: 发送给服务器的私钥密文
 // secretKey: 用户私钥的明文
 // IV: 用于AES_CBC加密的初始化向量，由服务器颁发或客户端随机生成？？？？
 SecretKey Encryption:
-	pwdHash = SHA256( MD5(pwd) + salt )
+	pwdHash = SHA512( pwd + saltSymKey )
 	SecretKeyEnc = AES_CBC( secretKey, pwdHash, IV)
 
 // 对于使用私钥进行登陆验证的用户，使用私钥对服务器指定的随机字符串计算签名，并发送给服务器进行验证
