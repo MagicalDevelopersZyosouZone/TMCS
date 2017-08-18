@@ -1,0 +1,67 @@
+注册
+
+C	生成 用户名
+		 RSA 公钥
+		 RSA 私钥
+	提交 用户名
+		 RSA 公钥
+
+S	存储 用户名
+		 RSA 公钥
+
+
+登录 - 基本
+
+C	提交 用户名
+
+S	生成 随机字符串
+		 密文 = RSAEncrypt(随机字符串, 用户名对应公钥) // 随机字符串长度为可使用的最大值, 根据不同的填充算法, 可能为 key_size / 8 或 key_size / 8 - 11
+	提交 密文
+
+C	生成 解密后明文 = RSADecrypt(密文, 自己私钥)
+	提交 解密后明文
+
+S	验证 随机字符串 == 解密后明文
+
+
+使用密码来同步私钥
+
+C	生成 Salt1
+		 Salt2
+		 Hash = SHA_512(密码 + Salt1)
+		 对称密钥 = SHA_512(密码 + Salt2)
+		 IV
+		 加密私钥 = AESEncrypt(私钥, 对称密钥, IV)
+	提交 用户名
+		 Hash
+		 Salt1
+		 Salt2
+		 IV
+		 加密私钥
+
+
+登录 - 密码
+
+C	提交 用户名
+
+S	提交 Salt1
+  *	提交 SaltTmp
+
+C *	生成 Hash = SHA_512(SHA_512(密码 + Salt1) + SaltTmp)
+	提交 Hash
+
+S	验证 Hash
+	提交 Salt2
+		 IV
+		 加密私钥
+
+C	还原 对称密钥 = SHA_512(密码 + Salt2)
+		 私钥 = AESDecrypt(加密私钥, 对称密钥, IV)
+
+发送消息
+
+C	生成 密文 = RSAEncrypt(原文, 对方公钥)
+	提交 密文
+
+S	存储 密文
+	向消息接收者推送 (如果在线)
