@@ -9,7 +9,7 @@
 // 草案完成后可以缩写标识符以节省数据流量
 
 [
-  //Account
+  //User
   {
     "Register": {
       "params": [
