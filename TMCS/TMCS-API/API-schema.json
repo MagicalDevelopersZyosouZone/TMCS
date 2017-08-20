@@ -1,0 +1,74 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "title": "JSON Schema for my JSON file format",
+
+  "type": "array",
+
+  "items": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "description": "The name of this API."
+      },
+      "description": {
+        "type": "string"
+      },
+      "protocol": {
+        "type": "string",
+        "enum": [ "HTTP", "WebSocket" ]
+      },
+      "relativeURL": {
+        "type": "string"
+      },
+      "method": {
+        "type": "string",
+        "enum": [ "GET", "POST", "PUT", "UPDATE", "DELETE", "OPTIONS", "HEAD", "TRACE", "CONNECT" ]
+      },
+      "params": {
+        "type": "object",
+        "additionalProperties": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [ "object", "number", "string", "array" ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [ "object", "number", "string", "array" ]
+                },
+                "description": { "type": "string" }
+              },
+              "required": [ "type" ]
+            }
+          ]
+        }
+      },
+      "returns": {
+        "type": "object",
+        "additionalProperties": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [ "object", "number", "string", "array" ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [ "object", "number", "string", "array" ]
+                },
+                "description": { "type": "string" }
+              },
+              "required": [ "type" ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

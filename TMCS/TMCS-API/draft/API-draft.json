@@ -3,21 +3,31 @@
 // { ... | ... } 必填的单选参数
 // ["..."] 数组（方括号在 JSON 字符串外部）
 //
-// 仅在操作失败时返回 code，值为负数
-// 无需返回任何数据时一律 return { code: 0 } ← 待议
 //
 // 草案完成后可以缩写标识符以节省数据流量
 
 [
   //User
   {
-    "Register": {
+    "RegisterByKey": {
+      "params": [
+        "userId",
+        "publicKey"
+      ],
+      "returns": [ "code" ]
+    },
+
+    "RegisterByPwd": {
       "params": [
         "userId",
         "publicKey",
-        "[passwordHash]"
+        "passwordHash",
+        "salt1",
+        "salt2",
+        "IV",
+        "prvKey"
       ],
-      "returns": []
+      "returns": [ "code" ]
     },
 
     "GetLoginInfo": {
@@ -25,6 +35,7 @@
         "userId"
       ],
       "returns": [
+        "code",
         "authType: { 'password' | 'privateKey' }" // 不是必须的，少暴露一些信息（例如有效的用户名）可以防止社工
         //-- 通过Search还是可以查到的，
       ]
@@ -35,7 +46,7 @@
         "userId",
         "{ privateKey | passwordHash }"
       ],
-      "returns": []
+      "returns": [ "code" ]
     },
 
     "GetInfo": {
@@ -43,6 +54,7 @@
         "userId"
       ],
       "returns": [
+        "code",
         "name",
         "publicKey"
       ]
@@ -50,6 +62,7 @@
 
     "SetSecretKey": {
       "params": [
+        "code",
         "pubKey",
         "[ prvKeyEnc ]" // If auth by password, send the privateKey encrypted with password? to the TMCS server.
       ]
@@ -59,6 +72,7 @@
     //-- NO 用上面那个SetSecretKey
     "SetInfo": {
       "params": [
+        "code",
         "userId",
         [ "key: value" ]
       ],
@@ -71,6 +85,7 @@
     "GetFriendList": {
       "params": [],
       "returns": [
+        "code",
         [ "userId" ]
       ]
     },
@@ -83,6 +98,7 @@
     "SearchUsers": {
       "params": [ "name" ],
       "returns": [
+        "code",
         [ "userId" ]
       ]
     },
@@ -91,6 +107,7 @@
     "PullMessages": {
       "params": [ "userId", "timestamp", "count" ],
       "returns": [
+        "code",
         [ "timestamp", "message" ]
       ]
     },
@@ -101,12 +118,12 @@
         //"relativeTime",
         "message"
       ],
-      "returns": []
+      "returns": ["code"]
     },
 
     "“SetUnreadTime”": {
       "params": [ "time" ],
-      "returns": []
+      "returns": ["code"]
     },
 
     //"PushMessages": {
@@ -122,7 +139,7 @@
       "params": [
         "userId"
       ],
-      "returns": []
+      "returns": ["code"]
     }
   }
 ]

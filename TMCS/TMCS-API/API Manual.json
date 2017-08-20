@@ -1,0 +1,71 @@
+﻿[
+  {
+    "name": "RegisterByKey",
+
+    "description": "Register as a user that login with Private Key.",
+
+    "relativeURL": /* fill it */,
+
+    "protocol": "HTTP",
+
+    "method": /* fill it */,
+
+    "params": {
+      "uid":"string",
+      "pubKey":"string"
+    },
+
+    "returns": {
+      "code": "number"
+    }
+  },
+
+  {
+    "name": "RegisterByPwd",
+
+    "description": "Register as a user that login with password.",
+
+    "relativeURL": /* fill it */,
+
+    "protocol": "HTTP",
+
+    "method": /* fill it */,
+
+    "params": {
+      "uid": "string",
+      "pwdHash": "string",
+      "salt1": "string",
+      "salt2": "string",
+      "IV": "string",
+      "pubKey": "string",
+      "prvKeyEnc": "string"
+    },
+
+    "returns": {
+      "code": "number"
+    }
+  },
+
+  {
+    "name": "PreLogin",
+
+    "description": "Get some data for login operation.",
+
+    "relativeURL": /* fill it */,
+
+    "protocol": "HTTP",
+
+    "method": /* fill it */,
+
+    "params": {
+      "uid": "string"
+    },
+
+    "returns": {
+      "authType": "number",
+      "authText": "string",
+      "salt1": "string",
+      "saltTmp": "string"
+    }
+  }
+]
