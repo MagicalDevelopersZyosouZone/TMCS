@@ -1,0 +1,37 @@
+﻿Root path: /api
+
+================================================================================
+
+/login/key-auth
+    POST    解密验证登录
+            { "step": "1",
+              "userId": "alice" }: 使用该用户公钥加密的验证码
+            { "step": "2",
+              "userId": "alice",
+              "authCode": "464C40DD" }: Set-Cookie
+
+/login/password
+    POST    密码登录
+            { "step": "1",
+              "userId": "bob" }: Salt, 提高逼格的 SaltTmp (by SardineFish)
+            { "step": "2",
+              "userId": "bob",
+              "hash": "81B5C938..." }: 加密的私钥
+
+/user/{userId}
+    GET     获取信息，如果对象不是自己则只能得到公开的信息
+    POST    修改自己的信息（用户的大部分非集合类信息都经由 POST 此 API 来修改）
+            { "param1": "value1",
+              "param2": "value2" }
+            具体有效字段待定
+    PUT     注册用户，如果该 userId 不存在
+            { "publicKey": "..." }
+    DELETE  删除用户
+
+/friend
+    GET     获取包含所有好友的集合
+
+/friend/{userId}
+    GET     获取该好友的用户信息
+    POST    暂不实现，修改好友的信息（分组等）
+    DELETE  删除该好友
