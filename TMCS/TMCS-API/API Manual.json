@@ -63,9 +63,30 @@
 
     "returns": {
       "authType": "number",
-      "authText": "string",
+      "authTextCry": "string",
       "salt1": "string",
       "saltTmp": "string"
+    }
+  },
+
+  {
+    "name": "Login-Key",
+
+    "description": "Login with private key.",
+
+    "relativeURL": /* fill it */,
+
+    "protocol": "HTTP",
+
+    "method": /* fill it */,
+
+    "params": {
+      "uid": "string",
+      "authText": "string"
+    },
+
+    "returns": {
+      "code": "number"
     }
   }
 ]
