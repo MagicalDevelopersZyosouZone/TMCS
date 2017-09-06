@@ -21,8 +21,8 @@
 /user/{userId}
     GET     获取信息，如果对象不是自己则只能得到公开的信息
     POST    修改自己的信息（用户的大部分非集合类信息都经由 POST 此 API 来修改）
-            { "param1": "value1",
-              "param2": "value2" }
+            { "key1": "value1",
+              "key2": "value2" }
             具体有效字段待定
     PUT     注册用户，如果该 userId 不存在
             { "publicKey": "..." }
