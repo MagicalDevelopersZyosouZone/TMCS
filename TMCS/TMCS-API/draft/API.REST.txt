@@ -28,8 +28,12 @@
             { "publicKey": "..." }
     DELETE  删除用户
 
-/friend
+/user/friends
     GET     获取包含所有好友的集合
+	PUT		添加
+	DELETE	删除
+	POST	调整分组/备注
+
 
 /friend/{userId}
     GET     获取该好友的用户信息

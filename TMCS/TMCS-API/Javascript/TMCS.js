@@ -81,10 +81,10 @@
     * @param {resultCallback} [callback] - The callback that handles the result.
     * @return undefined
     */
-    TMCS.prototype.login=function (uid,key,callback)
+    TMCS.prototype.login = function (uid, key, callback)
     {
-        
-    }
+
+    };
 
     /**
     * Register a user.
@@ -94,8 +94,8 @@
     */
     TMCS.prototype.register = function (uid, pubKey, callback)
     {
-        
-    }
+
+    };
 
     /**
      * Set the infomation of the user.
@@ -105,8 +105,8 @@
      */
     TMCS.prototype.setInfo = function (key, value, callback)
     {
-        
-    }
+
+    };
 
     /**
      * Get the infomation of the user.
@@ -116,7 +116,7 @@
      */
     TMCS.prototype.getInfo = function (key, callback, uid)
     {
-    }
+    };
 
     /**
      * Get the friends list of the user.
@@ -125,7 +125,27 @@
     TMCS.prototype.getFriends = function (callback)
     {
 
-    }
+    };
+
+    /**
+     * Add a user as friend.
+     * @param {string} uid - The uid of the friend.
+     * @param {resultCallback} [callback] - The callback that handles the result.
+     */
+    TMCS.prototype.addFriend = function (uid, callback)
+    {
+
+    };
+
+    /**
+     * Remove a friend.
+     * @param {string} uid - The uid of the user to be removed.
+     * @param {resultCallback} [callback] - The callback that handles the result.
+     */
+    TMCS.prototype.removeFriend = function (uid, callback)
+    {
+
+    };
 
 
     //ArrayList
