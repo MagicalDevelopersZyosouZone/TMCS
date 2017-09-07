@@ -1,4 +1,4 @@
-﻿(function()
+﻿(function ()
 {
     /**
      * @class
@@ -12,7 +12,7 @@
         this.websocket = new WebSocket();
         this.connected = false;
         this.status = TMCS.Status.Disconnected;
-        
+
         var tmcs = this;
         Object.defineProperty(this, "connected", {
             get: function ()
@@ -24,6 +24,21 @@
         if (address)
             this.address = address;
     }
+
+    /**
+     * A message to be sent.
+     * @class
+     * @param {object} sender - The sender.
+     * @param {string} receiver - The receiver.
+     * @param {object} data - The message.
+     */
+    function Message(sender, receiver, data)
+    {
+        this.sender = sender;
+        this.receiver = receiver;
+        this.data = data;
+    }
+    TMCS.Message = Message;
     
     /**
     * Enum for TMCS status.
@@ -87,6 +102,16 @@
     };
 
     /**
+     * Get the login method and data.
+     * @param {string} uid - The uid of the user to login.
+     * @param {resultCallback} [callback] - The callback that handles the result.
+     */
+    TMCS.prototype.getLoginMethod = function (uid, callback)
+    {
+
+    };
+
+    /**
     * Register a user.
     * @param {string} uid - The uid of the user.
     * @param {string} pubKey - The public key.
@@ -109,7 +134,7 @@
     };
 
     /**
-     * Get the infomation of the user.
+     * Get the infom ation of the user.
      * @param {string} key - The name of the info.
      * @param {resultCallback} [callback] - The callback that handles the result.
      * @param {string} [uid] - The name of the user.
@@ -146,6 +171,17 @@
     {
 
     };
+
+    /**
+     * Send some messages to other.
+     * @param {Message[]} messages - The array of the messages to be sent.
+     * @param {resultCallback} [callback] - The callback that handles the result.
+     */
+    TMCS.prototype.sendMsg = function (messages, callback)
+    {
+        
+    }
+
 
 
     //ArrayList
