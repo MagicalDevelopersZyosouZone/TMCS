@@ -1,15 +1,17 @@
-﻿(function ()
+﻿window.TMCS = (function ()
 {
     /**
      * @class
      * @param {string} [address] - The address of a TMCS server.
+     * @param {bool} [useSsl=false] - Connect with SSL.
      */
-    function TMCS(address)
+    function TMCS(address,useSsl)
     {
         this.address = "";
         this.uid = "";
         this.user = null;
-        this.websocket = new WebSocket();
+        this.ssl = false;
+        this.websocket = null;//new WebSocket();
         this.connected = false;
         this.status = TMCS.Status.Disconnected;
 
@@ -23,6 +25,20 @@
         })
         if (address)
             this.address = address;
+        if (useSsl)
+            this.ssl = true;
+    }
+
+    /**
+     * The result of an api calling.
+     * @class
+     * @param {number} code - The error code of the result;
+     * @param {object} data - The data of the result;
+     */
+    function APIResult(code, data)
+    {
+        this.code = code;
+        this.data = data;
     }
 
     /**
@@ -60,13 +76,15 @@
      * @public
      * @param {string} [address] - The address of a TMCS server
      */
-    TMCS.prototype.connect = function (address, callback)
+    TMCS.prototype.connect = function (address, useSsl, callback)
     {
         
         if (url)
             this.url = url;
         if (!this.url)
             throw new Error("URL required.");
+        if (useSsl)
+            this.ssl = true;
         var tmcs = this;
         this.websocket.onopen = function (e)
         {
@@ -74,7 +92,64 @@
 
         }
         this.status = TMCS.Status.Connecting;
-        this.websocket = new WebSocket(this.url);
+        if (this.ssl)
+        {
+            this.websocket = new WebSocket("wss://" + address + "/TMCS");
+        }
+        else
+        {
+            this.websocket = new WebSocket("ws://" + address + "/TMCS");
+        }
+
+    };
+
+    /**
+     * @param {string} url - The URL of the API.
+     * @param {object} params - The parameters.
+     * @param {string} method - The method of the http request.
+     * @param {responseCallback} [callback] - The callback that handles the result.
+     */ 
+    TMCS.prototype.callAPI = function (url, method, params, callback)
+    {
+        if (!this.address)
+            throw new Error("The address of the TMCS server is required.");
+        var request = new XMLHttpRequest();
+        if (this.ssl) {
+            request.open(method.toUpperCase(), "https://" + this.address + "/api" + url);
+        }
+        else {
+            request.open(method.toUpperCase(), "http://" + this.address + "/api" + url);
+        }
+        if (method.toUpperCase() === "PUT" || method.toUpperCase() === "POST")
+            request.setRequestHeader("Content-Type", "application/json");
+        request.onreadystatechange = function (e)
+        {
+            if (request.readyState != 4)
+                return;
+            if (!callback)
+                return;
+            var code = 0;
+            var data = null;
+            if (request.status != 200)
+            {
+                code = request.status;
+                data = request.statusText;
+            }
+            else
+            {
+                try {
+                    var result = JSON.parse(request.responseText);
+                    code = result.code;
+                    data = result.data;
+                }
+                catch (ex) {
+                    code = -110;
+                    data = "HTTP Response error."
+                }
+            }
+            callback(new APIResult(code, data));
+        }
+        request.send(JSON.stringify(params));
 
     };
 
@@ -98,7 +173,73 @@
     */
     TMCS.prototype.login = function (uid, key, callback)
     {
-
+        var tmcs = this;
+        this.getLoginMethod(uid, function (result)
+        {
+            if (result.code != 0)
+            {
+                if (callback)
+                    callback(result);
+                return;
+            }
+            //Auth by password.
+            if (result.data.authType == "Password") 
+            {
+                tmcs.callAPI(
+                    "/login/password",
+                    "POST",
+                    {
+                        uid: uid,
+                        hash: pidCrypt.SHA512(key)
+                    },
+                    function (result)
+                    {
+                        if (result != 0) 
+                        {
+                            switch (result.code)
+                            {
+                                case -202:
+                                    result.data = "User dose not exist.";
+                                    break;
+                                case -201:
+                                    result.data = "Password incorrect.";
+                                    break;
+                            }
+                        }
+                        if (callback)
+                            callback(result);
+                    });
+            }
+            //Auth by private key.
+            else if (result.data.authType=="PrivateKey")
+            {
+                var jsEnc = new JSEncrypt({ default_key_size: 1024 });
+                jsEnc.getKey();
+                var authCode = jsEnc.decrypt(jsEnc.encrypt(result.data.authCode));
+                tmcs.callAPI(
+                    "/login/key-auth",
+                    "POST",
+                    {
+                        uid: uid,
+                        authCode: authCode
+                    },
+                    function (result)
+                    {
+                        if (result != 0) {
+                            switch (result.code) {
+                                case -202:
+                                    result.data = "User dose not exist.";
+                                    break;
+                                case -201:
+                                    result.data = "Private key incorrect.";
+                                    break;
+                            }
+                        }
+                        if (callback)
+                            callback(result);
+                    });
+            }
+        });
     };
 
     /**
@@ -108,7 +249,22 @@
      */
     TMCS.prototype.getLoginMethod = function (uid, callback)
     {
+        this.callAPI("/login/" + encodeURIComponent(uid), "GET", null, function (response)
+        {
+            if (!callback)
+                return;
 
+            if(response.code !=0)
+            {
+                switch(response.code)
+                {
+                    case -202:
+                        response.data="User dose not exist.";
+                        break;
+                }
+            }
+            callback(response);
+        });
     };
 
     /**
@@ -340,10 +496,19 @@
         return Event;
     })();
 
+    return TMCS;
+
     /**
-     * The callback that handles the result
+     * The callback that handles the result.
      * @callback resultCallback
      * @param {string} result - The result.
+     * @return undefined
+     */
+
+    /**
+     * The callback that handles the HTTP Response.
+     * @callback responseCallback
+     * @param {XMLHttpRequestResponseType} response - The HTTP Response.
      * @return undefined
      */
 })();

@@ -36,7 +36,7 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "TMCS-API", "TMCS-API\", "{B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TMCS-Server", "TMCS-Server\TMCS-Server.csproj", "{50F82025-14C8-4D0F-8924-7384D05C2FEA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TMCS-Test", "TMCS-Test\TMCS-Test.csproj", "{0ECE8FC1-536A-4684-B142-524C630D56C8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TMCS-Test", "TMCS-Test\TMCS-Test.csproj", "{339D2783-0C8A-4607-B0CA-CBD417819621}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,10 +52,10 @@ Global
 		{50F82025-14C8-4D0F-8924-7384D05C2FEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50F82025-14C8-4D0F-8924-7384D05C2FEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50F82025-14C8-4D0F-8924-7384D05C2FEA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0ECE8FC1-536A-4684-B142-524C630D56C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0ECE8FC1-536A-4684-B142-524C630D56C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0ECE8FC1-536A-4684-B142-524C630D56C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0ECE8FC1-536A-4684-B142-524C630D56C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{339D2783-0C8A-4607-B0CA-CBD417819621}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{339D2783-0C8A-4607-B0CA-CBD417819621}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{339D2783-0C8A-4607-B0CA-CBD417819621}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{339D2783-0C8A-4607-B0CA-CBD417819621}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

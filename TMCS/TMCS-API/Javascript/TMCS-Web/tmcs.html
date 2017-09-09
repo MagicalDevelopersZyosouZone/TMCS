@@ -1,0 +1,172 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title></title>
+        <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no,target-densitydpi=device-dpi" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="browsermode" content="application" />
+        <meta name="full-screen" content="true" />
+        <script src="lib/jQuery/jquery.min.js"></script>
+        <script src="../TMCS.js"></script>
+        <script src="lib/HTMLTemplate/HTMLTemplate.js"></script>
+        <script src="lib/HTMLTemplate/Observe.js"></script>
+        <script src="lib/pidCrypt/pidcrypt_c.js"></script>
+        <script src="lib/pidCrypt/pidcrypt_util_c.js"></script>
+        <script src="lib/pidCrypt/sha512_c.js"></script>
+        <script src="lib/jsencrypt/jsencrypt.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="style.css"/>
+        <style>
+
+        </style>
+        <!--<link rel="stylesheet" type="text/css" href="themes/dark.css"/>-->
+    </head>
+    <body oncontextmenu="return false;">
+        <div id="login">
+            <div id="login-title" onselectstart="return false">Login</div>
+            <div id="login-input">
+                <input type="text" id="uid" placeholder="Username" />
+                <input type="password" id="pwd" placeholder="Password" />
+                <div id="buttons">
+                    <a id="buttonLogin" class="button">Sign in</a>
+                    <a id="buttonRegister" class="button">Sign up</a>
+                </div>
+            </div>
+            <!--<i id="buttonLogin" class="icon" onselectstart="return false">arrow_forward</i>-->
+        </div>
+        <div id="register">
+            
+        </div>
+        <div id="root" style="display: none;">
+            <div id="top" onselectstart="return false;">
+                <i id="buttonMenu" class="icon" onclick="$('#side').removeClass('slideOut');$('#side').addClass('slideIn');">menu</i>
+                <div id="title">Title</div>
+            </div>
+            <div id="side" onselectstart="return false;">
+                <div>
+                    <div class="item">
+                        <i id="buttonMenu" class="icon" onclick="$('#side').removeClass('slideIn');$('#side').addClass('slideOut');">menu</i>
+                    </div>
+                    <div id="friends">
+                        <template id="friendTemplate">
+                            <div class="item friend" onclick="friendClick('{uid}')">
+                                <img class="face" src="{face}"/>
+                                <div class="name">{uid}</div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            <div id="center">
+                <div id="chat">
+                    <div class="msgOpp">
+                        <img class="face" src="img/User_50.min.png"/>
+                        <div class="msgBox">
+                            <div class="arrow"></div>
+                            <div class="msg">Hello!</div>
+                        </div>
+                    </div>
+                    <div class="msgOpp">
+                        <img class="face" src="img/User_50.min.png"/>
+                        <div class="msgBox">
+                            <div class="arrow"></div>
+                            <div class="msg">
+                                Hey!
+                                <br>
+                                You!
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="msgSelf">
+                        <div class="msgBox">
+                            <div class="arrow"></div>
+                            <div class="msg">I see...</div>
+                        </div>
+                        <img class="face" src="img/User_50.min.png"/>
+                    </div>
+                </div>
+            </div>
+            <div id="footer">
+                <div id="inputArea">
+                    <div id="input" contenteditable="true">Input</div>
+                    <i id="buttonEmoji" class="icon" onselectstart="return false">insert_emoticon</i>
+                    <i id="buttonSend" class=icon onselectstart="return false">send</i>
+                </div>
+            </div>
+        </div>
+        <script>
+
+            try
+            {
+                
+                HTMLTemplate.Init();
+                var tmcsClient = new TMCS("localhost:5732",false);
+                $("#buttonMenu").click(function (e)
+                {
+
+                });
+                $("#buttonLogin").click(function (e)
+                {
+                    var uid = $("#uid").val();
+                    var pwd = $("#pwd").val();
+                    tmcsClient.login(uid, pwd, function (result)
+                    {
+
+                    });
+                    return;
+                    login(uid, pwd, function (succeed, msg)
+                    {
+                        if (!succeed)
+                        {
+                            alert(msg);
+                            return;
+                        }
+                        $("#root").css("display", "block");
+                        $("#login").animate({ opacity: 0 }, 500, function ()
+                        {
+                            $("#login").css("display", "none");
+                        });
+                        initUser();
+                    });
+                });
+                function friendClick(uid)
+                {
+                    initChat(uid);
+                }
+                function initChat(uid)
+                {
+                    chatting = friends[uid];
+                    $("#top #title").text(uid);
+
+                }
+                var friends = [];
+                var chatting = null;
+                function initUser()
+                {
+                    getFriends(function (list)
+                    {
+                        var container = $("#friendTemplate").get(0);
+                        container.dataSource = list;
+                        //container.html("");
+                        //alert(list);
+                        friends = list;
+                        for (var i = 0; i < list.length; i++)
+                        {
+                            friends.msg = [];
+                            friends[friends[i].uid] = friends[i];
+                        }
+                        //$(".friend").click(friendClick);
+                    });
+                    startRecv(function (msg)
+                    {
+                        friends[msg.sender].msg.add(msg);
+                    });
+                }
+            }
+            catch (ex)
+            {
+                alert("global:" + ex.message);
+            }
+        </script>
+    </body>
+</html>
