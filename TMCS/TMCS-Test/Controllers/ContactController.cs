@@ -9,52 +9,86 @@ using Newtonsoft.Json.Linq;
 namespace TMCS_Test.Controllers
 {
     [Route("api/[controller]")]
-    public class FriendsController : Controller
+    public class ContactController : Controller
     {
         // GET: api/friends
         [HttpGet]
         public object Get()
         {
-            Response.Headers["Access-Control-Allow-Origin"] = "*";
-            return new object[]
+            TMCSTest.CORS(Request, Response);
+            if (!Request.Cookies.Keys.Contains("token") || Request.Cookies["token"] == "")
             {
-                new
+                return new
                 {
-                    uid="jack",
-                    nickName="Jack",
-                    group="default"
-                },
-                new
+                    code = -210,
+                    data = "Please login."
+                };
+            }
+            if (TMCSTest.rand.NextDouble() < 0.05)
+            {
+                return new
                 {
-                    uid="cherry",
-                    nickName="CherrY",
-                    group="default"
-                },
-                new
+                    code = -210,
+                    data = "Please login"
+                };
+            }
+            else
+            {
+                return new
                 {
-                    uid="BROWN",
-                    nickName="Miku",
-                    group="default"
-                },
-                new
-                {
-                    uid="Dwscdv3",
-                    nickName="Dwscdv3",
-                    group="developer"
-                },
-                new
-                {
-                    uid="SardineeeFish",
-                    nickName="SardineFish",
-                    group="developer"
-                },
-            };
+                    code = 0,
+                    data = new object[]
+                    {
+                        new
+                        {
+                            uid="jack",
+                            nickName="Jack",
+                            group="default",
+                            note="",
+                            profile=TMCSTest.GetUserProfile("jack")
+                        },
+                        new
+                        {
+                            uid="cherry",
+                            nickName="CherrY",
+                            group="default",
+                            note="",
+                            profile=TMCSTest.GetUserProfile("cherry")
+                        },
+                        new
+                        {
+                            uid="BROWN",
+                            nickName="Miku",
+                            group="default",
+                            note="Hentai",
+                            profile=TMCSTest.GetUserProfile("BROWN")
+                        },
+                        new
+                        {
+                            uid="Dwscdv3",
+                            nickName="Dwscdv3",
+                            group="developer",
+                            note="Dwscdv3",
+                            profile=TMCSTest.GetUserProfile("Dwscdv3")
+                        },
+                        new
+                        {
+                            uid="SardineFish",
+                            nickName="SardineeeFish",
+                            group="developer",
+                            note="SardineFish",
+                            profile=TMCSTest.GetUserProfile("SardineFish")
+                        },
+                    }
+                };
+            }
+            
         }
 
         [HttpGet("{uid}")]
         public object Get(string uid)
         {
-            Response.Headers["Access-Control-Allow-Origin"] = "*";
+            TMCSTest.CORS(Request, Response);
             return new
             {
                 code = 0,
@@ -63,14 +97,13 @@ namespace TMCS_Test.Controllers
         }
 
         [HttpPost("{uid}")]
-        public object Post(string uid, [FromBody]string data)
+        public object Post(string uid, [FromBody]dynamic data)
         {
-            Response.Headers["Access-Control-Allow-Origin"] = "*";
+            TMCSTest.CORS(Request, Response);
             string group = "default";
             try
             {
-                var jobj = JObject.Parse(data);
-                group = jobj["group"].ToString();
+                group = data.group.ToString();
             }
             catch (Exception ex)
             {
@@ -122,7 +155,7 @@ namespace TMCS_Test.Controllers
         [HttpPut("{uid}")]
         public object Put(string uid)
         {
-            Response.Headers["Access-Control-Allow-Origin"] = "*";
+            TMCSTest.CORS(Request, Response);
             if (TMCSTest.rand.NextDouble() < 0.25)
             {
                 return new
@@ -160,7 +193,7 @@ namespace TMCS_Test.Controllers
         [HttpDelete("{uid}")]
         public object Delete(string uid)
         {
-            Response.Headers["Access-Control-Allow-Origin"] = "*";
+            TMCSTest.CORS(Request, Response);
             if (TMCSTest.rand.NextDouble()<0.33)
             {
                 return new
@@ -185,6 +218,12 @@ namespace TMCS_Test.Controllers
                     data = uid
                 };
             }
+        }
+
+        [HttpOptions]
+        public void Options()
+        {
+            TMCSTest.CORS(Request, Response);
         }
     }
 }

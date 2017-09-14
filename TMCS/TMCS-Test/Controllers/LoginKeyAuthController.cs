@@ -16,42 +16,64 @@ namespace TMCS_Test.Controllers
     public class LoginKeyAuthController : Controller
     {
         [HttpPost]
-        public object Post([FromBody]JObject data)
+        public object Post([FromBody]dynamic data)
         {
-            Response.Headers["Access-Control-Allow-Headers"] = "content-type";
-            Response.Headers["Access-Control-Allow-Origin"] = "*";
-            if(TMCSTest.rand.NextDouble()<0.33)
+            TMCSTest.CORS(Request, Response);
+            string uid = "", authCode = "";
+            try
             {
-                var jsonOjb = data;
-                var uid = jsonOjb["uid"].ToString();
-                var authCode = jsonOjb["authCode"].ToString();
+                uid = data.uid.ToString();
+                authCode = data.authCode.ToString();
+            }
+            catch (Exception ex)
+            {
+                return new
+                {
+                    code = -100,
+                    data = ex.Message
+                };
+            }
+            if(TMCSTest.rand.NextDouble()<0.1)
+            {
                 return new
                 {
                     code = -202,
                     data = new { uid = uid, authCode = authCode }
                 };
             }
-            else if (TMCSTest.rand.NextDouble()<0.5)
+            else if (TMCSTest.rand.NextDouble()<0.8)
             {
-                var jsonOjb = JObject.Parse(data);
-                var uid = jsonOjb["uid"].ToString();
-                var authCode = jsonOjb["authCode"].ToString();
-                return new { code = 0, data = new { uid = uid, authCode = authCode } };
+                
+                Response.Cookies.Append("token", "I'm a token.");
+                return new
+                {
+                    code = 0,
+                    data = new
+                    {
+                        uid = uid,
+                        authCode = authCode,
+                        token= "I'm a token."
+                    }
+                };
             }
             else
             {
-                var jsonOjb = JObject.Parse(data);
-                var uid = jsonOjb["uid"].ToString();
-                var authCode = jsonOjb["authCode"].ToString();
-                return new { code = -201, data = new { uid = uid, authCode = authCode } };
+                return new
+                {
+                    code = -201,
+                    data = new
+                    {
+                        uid = uid,
+                        authCode = authCode
+                    }
+                };
             }
         }
 
         [HttpOptions]
         public void Options()
         {
-            Response.Headers["Access-Control-Allow-Headers"] = "content-type";
-            Response.Headers["Access-Control-Allow-Origin"] = "*";
+            TMCSTest.CORS(Request, Response);
         }
     }
 }

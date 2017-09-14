@@ -9,7 +9,7 @@
         <script src="lib/jQuery/jquery.min.js"></script>
         <script src="../TMCS.js"></script>
         <script src="lib/HTMLTemplate/HTMLTemplate.js"></script>
-        <script src="lib/HTMLTemplate/Observe.js"></script>
+        <script src="lib/HTMLTemplate/ObserveList.js"></script>
         <script src="lib/pidCrypt/pidcrypt_c.js"></script>
         <script src="lib/pidCrypt/pidcrypt_util_c.js"></script>
         <script src="lib/pidCrypt/sha512_c.js"></script>
@@ -31,32 +31,45 @@
                     <a id="buttonRegister" class="button">Sign up</a>
                 </div>
             </div>
+            <p id="error-output">Unknown error.</p>
             <!--<i id="buttonLogin" class="icon" onselectstart="return false">arrow_forward</i>-->
         </div>
         <div id="register">
             
         </div>
-        <div id="root" style="display: none;">
-            <div id="top" onselectstart="return false;">
-                <i id="buttonMenu" class="icon" onclick="$('#side').removeClass('slideOut');$('#side').addClass('slideIn');">menu</i>
-                <div id="title">Title</div>
-            </div>
+        <div id="main" style="display: none;">
             <div id="side" onselectstart="return false;">
                 <div>
                     <div class="item">
                         <i id="buttonMenu" class="icon" onclick="$('#side').removeClass('slideIn');$('#side').addClass('slideOut');">menu</i>
                     </div>
-                    <div id="friends">
-                        <template id="friendTemplate">
-                            <div class="item friend" onclick="friendClick('{uid}')">
-                                <img class="face" src="{face}"/>
-                                <div class="name">{uid}</div>
+                    <div id="myself" class="item">
+                        <img id="face" src="http://img.sardinefish.com/NDc2NTU2"/>
+                        <div id="info">
+                            <div id="name">My Name</div>
+                            <div id="uid">my_uid</div>
+                            <div id="status" class="online"></div>
+                        </div>
+                    </div>
+                    <div id="contact"></div>
+                    <div id="contacts">
+                        <template id="contactTemplate">
+                            <div class="item contact" onclick="contactClick('{uid}')">
+                                <img class="face" src="{avatar}"/>
+                                <div class="info">
+                                    <div class="name">{name}</div>
+                                    <div class= "status {status}"></div>
+                                </div>
                             </div>
                         </template>
                     </div>
                 </div>
             </div>
             <div id="center">
+                <div id="top" onselectstart="return false;">
+                    <i id="buttonMenu" class="icon" onclick="$('#side').removeClass('slideOut');$('#side').addClass('slideIn');">menu</i>
+                    <div id="title">Title</div>
+                </div>
                 <div id="chat">
                     <div class="msgOpp">
                         <img class="face" src="img/User_50.min.png"/>
@@ -85,12 +98,12 @@
                         <img class="face" src="img/User_50.min.png"/>
                     </div>
                 </div>
-            </div>
-            <div id="footer">
-                <div id="inputArea">
-                    <div id="input" contenteditable="true">Input</div>
-                    <i id="buttonEmoji" class="icon" onselectstart="return false">insert_emoticon</i>
-                    <i id="buttonSend" class=icon onselectstart="return false">send</i>
+                <div id="footer">
+                    <div id="inputArea">
+                        <div id="input" contenteditable="true">Input</div>
+                        <i id="buttonEmoji" class="icon" onselectstart="return false">insert_emoticon</i>
+                        <i id="buttonSend" class=icon onselectstart="return false">send</i>
+                    </div>
                 </div>
             </div>
         </div>
@@ -98,20 +111,34 @@
 
             try
             {
-                
                 HTMLTemplate.Init();
-                var tmcsClient = new TMCS("localhost:5732",false);
+                var tmcsClient = new TMCS("localhost:5732", false);
+                var contactsList = new ObserveList();
                 $("#buttonMenu").click(function (e)
                 {
 
                 });
                 $("#buttonLogin").click(function (e)
                 {
+                    tmcsClient = new TMCS("localhost:5732", false);
+                    $("#login #error-output").text("");
                     var uid = $("#uid").val();
                     var pwd = $("#pwd").val();
                     tmcsClient.login(uid, pwd, function (result)
                     {
-
+                        if (result.code == 0)
+                        {
+                            $("#main").css("display", "block");
+                            $("#login").animate({ opacity: 0 }, 500, function ()
+                            {
+                                $("#login").css("display", "none");
+                            });
+                            initUser();
+                        }
+                        else
+                        {
+                            $("#login #error-output").text(result.data);
+                        }
                     });
                     return;
                     login(uid, pwd, function (succeed, msg)
@@ -121,45 +148,72 @@
                             alert(msg);
                             return;
                         }
-                        $("#root").css("display", "block");
-                        $("#login").animate({ opacity: 0 }, 500, function ()
-                        {
-                            $("#login").css("display", "none");
-                        });
-                        initUser();
+                        
                     });
                 });
-                function friendClick(uid)
+                function contactClick(uid)
                 {
                     initChat(uid);
                 }
                 function initChat(uid)
                 {
-                    chatting = friends[uid];
+                    chatting = contacts[uid];
                     $("#top #title").text(uid);
 
                 }
-                var friends = [];
+                var contacts = [];
                 var chatting = null;
                 function initUser()
                 {
-                    getFriends(function (list)
+                    tmcsClient.user.getProfile(function (result)
                     {
-                        var container = $("#friendTemplate").get(0);
+                        if (result.code == 0)
+                        {
+
+                        }
+                    });
+                    return;
+                    getContacts(function (list)
+                    {
+                        tmcsClient.getContacts(function (result)
+                        {
+                            if (result.code == 0) {
+                                var container = $("#contactTemplate").get(0);
+                                contactsList = new ObserveList();
+                                for (var i = 0; i < result.data.length; i++) {
+                                    var data = result.data[i];
+                                    var contact = {
+                                        name: data.uid,
+                                        avatar: data.profile.avatar,
+                                        uid: data.uid,
+                                        status: data.profile.status.toLowerCase()
+                                    };
+                                    if (data.profile.nickName != "")
+                                        contact.name = data.profile.nickName;
+                                    if (data.note != "")
+                                        contact.name = data.note;
+                                    contactsList.add(contact);
+                                }
+                                container.dataSource = contactsList;
+
+                            }
+
+                        });
+                        var container = $("#contactTemplate").get(0);
                         container.dataSource = list;
                         //container.html("");
                         //alert(list);
-                        friends = list;
+                        contacts = list;
                         for (var i = 0; i < list.length; i++)
                         {
-                            friends.msg = [];
-                            friends[friends[i].uid] = friends[i];
+                            contacts.msg = [];
+                            contacts[contacts[i].uid] = contacts[i];
                         }
-                        //$(".friend").click(friendClick);
+                        //$(".contact").click(contactClick);
                     });
                     startRecv(function (msg)
                     {
-                        friends[msg.sender].msg.add(msg);
+                        contacts[msg.sender].msg.add(msg);
                     });
                 }
             }

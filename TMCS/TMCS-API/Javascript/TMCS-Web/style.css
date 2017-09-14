@@ -41,7 +41,66 @@
     cursor: pointer;
     border-radius: 5px;
 }
+.offline {
+    color: rgba(255, 255, 255, 0.3);
+}
 
+.offline::before{
+    
+    font-family: 'Material Icons';
+    line-height: 1;
+    font-style: normal;
+    display: inline-block;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+    /* Support for all WebKit browsers. */
+    -webkit-font-smoothing: antialiased;
+    /* Support for Safari and Chrome. */
+    text-rendering: optimizeLegibility;
+    /* Support for Firefox. */
+    -moz-osx-font-smoothing: grayscale;
+    /* Support for IE. */
+    font-feature-settings: 'liga';
+    content:"lens";
+    position: relative;
+    top:0.1em;
+}
+.offline::after {
+    content: "offline";
+}
+
+.online {
+    color: rgba(164, 229, 164, 1);
+}
+
+.online::before{
+    font-family: 'Material Icons';
+    line-height: 1;
+    font-style: normal;
+    display: inline-block;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+    /* Support for all WebKit browsers. */
+    -webkit-font-smoothing: antialiased;
+    /* Support for Safari and Chrome. */
+    text-rendering: optimizeLegibility;
+    /* Support for Firefox. */
+    -moz-osx-font-smoothing: grayscale;
+    /* Support for IE. */
+    font-feature-settings: 'liga';
+    content:"lens";
+    position: relative;
+    top:0.1em;
+}
+.online::after{
+    content:"online";
+}
 html{
     padding: 0px;
     margin: 0px;
@@ -56,9 +115,36 @@ body {
 input{
     border: none 0px;
 }
-#side .item{
+#side .item {
     padding: 0.4em;
+    padding-left: 0.5cm;
+    padding-right: 0.5cm;
 }
+#myself #face {
+    border-radius: 100%;
+    height: 2.4cm;
+}
+#myself #info {
+    display: inline-block;
+    vertical-align: top;
+    margin-left: 0.2cm;
+}
+#myself #name {
+    font-size: 0.8cm;
+}
+#myself #uid {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.contact .info {
+    display: inline-block;
+    vertical-align: top;
+    margin-left: 0.4em;
+}
+.contact .status {
+    font-size: 0.8em;
+}
+
 @keyframes slideIn{
     from{
         left: -100%;
@@ -88,10 +174,14 @@ input{
     animation-name: slideOut;
 
 }
-.friend{
-    
+.contact {
+    cursor: pointer;
+    margin-top: 1em;
 }
-.friend .face{
+.contact:hover{
+    background-color: rgba(0,0,0,0.3);
+}
+.contact .face{
     display: inline-block;
     width: 1.2cm;
     height: 1.2cm;
@@ -99,12 +189,12 @@ input{
     overflow: hidden;
     vertical-align: middle;
 }
-.friend .name{
-    display: inline-block;
-    margin-left: 0.4em;
+.contact .name {
     vertical-align: middle;
-    font-size: 0.6cm;
+    font-size: 0.5cm;
+    color: #aaaaaa;
 }
+
 .msgOpp{
     position: relative;
     padding: 0.4em;
@@ -116,29 +206,29 @@ input{
     display: inline-block;
     vertical-align: top;
 }
-.msgOpp .msgBox{
+.msgOpp .msgBox {
     position: relative;
     display: inline-block;
-    margin-left: 0.4em;
+    margin-left: 0.8em;
     max-width: calc(100% - 1.5cm);
 }
-.msgOpp .arrow{
-    border-top: solid 0.6em #4d90ff;
-    border-left: solid 0.6em rgba(0,0,0,0);
+.msgOpp .arrow {
+    border-top: solid 0.6em rgba(120, 157, 217, 1);
+    border-left: solid 0.6em rgba(0, 0, 0, 0);
     width: calc(100% - 5px);
     position: absolute;
     left: -0.6em;
 }
-.msgOpp .msg{
-    
+.msgOpp .msg {
     padding: 0.4em;
     padding-left: 0.8em;
     padding-right: 0.8em;
     border-radius: 5px;
     border-radius-topleft: 0px;
-    background: #4d90ff;
+    background-color: rgba(120, 157, 217, 1);
     color: white;
 }
+
 .msgSelf{
     text-align: right;
     position: relative;
@@ -151,30 +241,30 @@ input{
     display: inline-block;
     vertical-align: top;
 }
-.msgSelf .msgBox{
+.msgSelf .msgBox {
     position: relative;
     display: inline-block;
-    margin-left: 0.4em;
+    margin-right: 0.8em;
     max-width: calc(100% - 1.5cm);
 }
-.msgSelf .arrow{
-    border-right: solid 0.6em #4d90ff;
-    border-bottom: solid 0.6em rgba(0,0,0,0);
+.msgSelf .arrow {
+    border-right: solid 0.6em rgba(120, 157, 217, 1);
+    border-bottom: solid 0.6em rgba(0, 0, 0, 0);
     height: calc(100% - 5px);
     position: absolute;
     right: 0px;
     bottom: -0.6em;
 }
-.msgSelf .msg{
-    
+.msgSelf .msg {
     padding: 0.4em;
     padding-left: 0.8em;
     padding-right: 0.8em;
     border-radius: 5px;
     border-radius-topleft: 0px;
-    background: #4d90ff;
+    background: rgba(120, 157, 217, 1);
     color: white;
 }
+
 #login{
     position: fixed;
     width: 100%;
@@ -208,8 +298,18 @@ input{
 #login input {
     background: rgba(255,255,255,0.4)
 }
+#login #error-output {
+    margin: auto;
+    margin-top: 2cm;
+    color: rgba(255, 108, 82, 1);
+    text-align: left;
+    width: 60%;
+    max-width: 32em;
+    padding-left: 1cm;
+}
 
-#uid{
+
+#login #uid {
     width: calc(100% - 1.6em);
     font-size: 0.6cm;
     padding-top: 0.4em;
@@ -218,7 +318,7 @@ input{
     padding-right: 0.8em;
     border-radius: 5px;
 }
-#pwd{
+#login #pwd{
     width: calc(100% - 1.6em);
     font-size: 0.6cm;
     padding-top: 0.4em;
@@ -235,49 +335,112 @@ input{
     right: 0px;
     background-color: #666666;
 }
-
-#root{
-    display: relative;
+#main {
+    display: block;
+    position: fixed;
+    width: 100%;
+    height: 100%;
     z-index: 0;
 }
 #top {
     display: block;
-    position: fixed;
-    width: 100%;
+    position: absolute;
+    width: calc(100% - 0.8em);
     background: #222222;
     color: white;
     padding: 0.4em;
     font-size: 0.6cm;
+    z-index: 10;
 }
-#buttonMenu{
+
+#buttonMenu {
+    display: none;
     font-size: 1cm;
     vertical-align: middle;
     color: gray;
 }
+
 #title{
     margin-left: 1em;
     display: inline-block;
     vertical-align: middle;
 }
+/* style.css (130, 16) */
+.msgOpp .arrow {
+    border-top: solid 0.6em rgba(120, 157, 217, 1);
+    border-left: solid 0.6em rgba(0, 0, 0, 0);
+    width: calc(100% - 5px);
+    position: absolute;
+    left: -0.6em;
+}
+
+/* style.css (137, 14) */
+.msgOpp .msg {
+    padding: 0.4em;
+    padding-left: 0.8em;
+    padding-right: 0.8em;
+    border-radius: 5px;
+    border-radius-topleft: 0px;
+    background-color: rgba(120, 157, 217, 1);
+    color: white;
+}
+
+/* style.css (166, 17) */
+.msgSelf .arrow {
+    border-right: solid 0.6em rgba(120, 157, 217, 1);
+    border-bottom: solid 0.6em rgba(0, 0, 0, 0);
+    height: calc(100% - 5px);
+    position: absolute;
+    right: 0px;
+    bottom: -0.6em;
+}
+
+/* style.css (174, 15) */
+.msgSelf .msg {
+    padding: 0.4em;
+    padding-left: 0.8em;
+    padding-right: 0.8em;
+    border-radius: 5px;
+    border-radius-topleft: 0px;
+    background: rgba(120, 157, 217, 1);
+    color: white;
+}
+
+/* style.css (271, 13) */
+#buttonMenu {
+    display: none;
+    font-size: 1cm;
+    vertical-align: middle;
+    color: gray;
+}
 #side {
-    position: fixed;
+    position: absolute;
     z-index: 100;
     background: #333333;
-    color: rgba(255,255,255,0.7) width: 6cm;
+    color: rgba(255, 255, 255, 0.7);
+    width: 16%;
     height: 100%;
-    left: -100%;
+    left: 0px;
 }
-#chat{
-    padding-top: 2cm;
+#center {
+    position: absolute;
+    height: 100%;
+    width: 84%;
+    margin-left: 16%;
+}
+#chat {
+    height: calc(100% - 4cm);
 }
 #footer {
-    position: fixed;
+    position: absolute;
     bottom: 0px;
-    width: 100%;
+    width: calc(100% - 0.8em);
     background: gray;
     padding: 0.4em;
     background: #222222;
+    z-index: 10;
 }
+
 #inputArea .icon {
     color: #555555;
 }

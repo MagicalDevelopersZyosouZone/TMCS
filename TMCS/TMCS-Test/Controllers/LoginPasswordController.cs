@@ -14,14 +14,25 @@ namespace TMCS_Test.Controllers
     {
         // GET: api/values
         [HttpPost]
-        public object Post([FromBody]string data)
+        public object Post([FromBody]dynamic data)
         {
-            Response.Headers["Access-Control-Allow-Headers"] = "content-type";
-            Response.Headers["Access-Control-Allow-Origin"] = "*";
-            var jobj = JObject.Parse(data);
-            string uid = jobj["uid"].ToString();
-            string hash = jobj["hash"].ToString();
-            if (TMCSTest.rand.NextDouble()<0.33)
+            TMCSTest.CORS(Request, Response);
+            string uid = "";
+            string hash = "";
+            try
+            {
+                uid = data.uid.ToString();
+                hash = data.hash.ToString();
+            }
+            catch (Exception ex)
+            {
+                return new
+                {
+                    code = -100,
+                    data = ex.Message
+                };
+            }
+            if (TMCSTest.rand.NextDouble()<0.1)
             {
                 return new
                 {
@@ -29,9 +40,20 @@ namespace TMCS_Test.Controllers
                     data = new { uid = uid, hash = hash }
                 };
             }
-            else if (TMCSTest.rand.NextDouble() < 0.5)
+            else if (TMCSTest.rand.NextDouble() < 0.8)
             {
-                return new { code = 0, data = new { uid = uid, hash = hash } };
+                Response.Cookies.Append("token", "I'm a token.");
+                return new
+                {
+                    code = 0,
+                    data = new
+                    {
+                        uid = uid,
+                        hash = hash,
+                        token = "I'm a token.",
+                        prvKey = "I'm a private key."
+                    }
+                };
             }
             else
             {
@@ -42,8 +64,7 @@ namespace TMCS_Test.Controllers
         [HttpOptions]
         public void Options()
         {
-            Response.Headers["Access-Control-Allow-Headers"] = "content-type";
-            Response.Headers["Access-Control-Allow-Origin"] = "*";
+            TMCSTest.CORS(Request, Response);
         }
     }
 }

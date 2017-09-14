@@ -29,16 +29,16 @@ namespace TMCS_Test.Controllers
         [HttpGet]
         public void Get()
         {
-            Response.Headers["Access-Control-Allow-Origin"] = "*";
+            TMCSTest.CORS(Request, Response);
             Response.StatusCode = 403;
         }
 
         [HttpGet("{uid}")]
         public object Get(string uid)
         {
-            Response.Headers["Access-Control-Allow-Origin"] = "*";
+            TMCSTest.CORS(Request, Response);
             Response.Headers["Cache-Control"] = "no-cache";
-            if(TMCSTest.rand.NextDouble()<0.33)
+            if(TMCSTest.rand.NextDouble()<0.1)
             {
                 return new
                 {

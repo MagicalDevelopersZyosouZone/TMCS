@@ -15,7 +15,7 @@ namespace TMCS_Test.Controllers
         [HttpGet]
         public void Get()
         {
-            Response.Headers["Access-Control-Allow-Origin"] = "*";
+            TMCSTest.CORS(Request, Response);
             Response.StatusCode = 403;
         }
 
@@ -23,38 +23,20 @@ namespace TMCS_Test.Controllers
         [HttpGet("{uid}")]
         public object Get(string uid)
         {
-            Response.Headers["Access-Control-Allow-Origin"] = "*";
-            if (TMCSTest.rand.NextDouble() < 0.33)
+            Response.Headers["Cache-Control"] = "no-cache";
+            TMCSTest.CORS(Request, Response);
+            if (TMCSTest.rand.Next() < 0.1 || !Request.Cookies.Keys.Contains("token"))
             {
                 return new
                 {
-                    code = 0,
+                    code = -210,
                     data = new
                     {
-                        uid = uid,
-                        nickName = uid.ToUpper(),
-                        sex = "Male",
-                        status = "Online",
-                        avatar = "http://img.sardinefish.com/NDc2NTU2"
+                        uid = uid
                     }
                 };
             }
-            else if (TMCSTest.rand.NextDouble() < 0.5)
-            {
-                return new
-                {
-                    code = 0,
-                    data = new
-                    {
-                        uid = uid,
-                        nickName = uid.ToUpper(),
-                        sex = "Female",
-                        status = "Offline",
-                        avatar = "http://img.sardinefish.com/NDc2NTU2"
-                    }
-                };
-            }
-            else
+            if (TMCSTest.rand.NextDouble() < 0.1)
             {
                 return new
                 {
@@ -62,12 +44,20 @@ namespace TMCS_Test.Controllers
                     data = uid
                 };
             }
+            else
+            {
+                return new
+                {
+                    code = 0,
+                    data = TMCSTest.GetUserProfile(uid)
+                };
+            }
         }
 
         [HttpPost("{uid}")]
         public object Post(string uid, [FromBody]string data)
         {
-            Response.Headers["Access-Control-Allow-Origin"] = "*";
+            TMCSTest.CORS(Request, Response);
             if (TMCSTest.rand.NextDouble()<0.5)
             {
                 return new
@@ -95,15 +85,13 @@ namespace TMCS_Test.Controllers
         }
 
         [HttpPut("{uid}")]
-        public object Put(string uid, [FromBody]string data)
+        public object Put(string uid, [FromBody]dynamic data)
         {
-            Response.Headers["Access-Control-Allow-Origin"] = "*";
+            TMCSTest.CORS(Request, Response);
             string pubKey = "";
             try
             {
-                var jobj = JObject.Parse(data);
-                uid = jobj["uid"].ToString();
-                pubKey = jobj["publicKey"].ToString();
+                pubKey = data.pubKey.ToString();
             }
             catch (Exception ex)
             {
@@ -143,7 +131,7 @@ namespace TMCS_Test.Controllers
         [HttpDelete("{uid}")]
         public object Delete(string uid)
         {
-            Response.Headers["Access-Control-Allow-Origin"] = "*";
+            TMCSTest.CORS(Request, Response);
             if (TMCSTest.rand.NextDouble()<0.33)
             {
                 return new
@@ -168,6 +156,12 @@ namespace TMCS_Test.Controllers
                     data = uid
                 };
             }
+        }
+
+        [HttpOptions]
+        public void Options()
+        {
+            TMCSTest.CORS(Request, Response);
         }
 
     }

@@ -13,7 +13,8 @@
         this.ssl = false;
         this.websocket = null;//new WebSocket();
         this.connected = false;
-        this.status = TMCS.Status.Disconnected;
+        this.status = TMCS.Status.Offline;
+        this.friends = new Array();
 
         var tmcs = this;
         Object.defineProperty(this, "connected", {
@@ -22,12 +23,156 @@
                 return (tmcs.websocket.readyState == 1);
             }
 
-        })
+        });
+        var user = null;
+        var userSet = false;
+        Object.defineProperty(this, "user", {
+            get: function ()
+            {
+                return user;
+            },
+            set: function (value)
+            {
+                if (!(value instanceof User))
+                    throw new Error("An instance of User required.");
+                if (userSet)
+                    throw new Error("Cannot reset the user.");
+                userSet = true;
+                user = value;
+                user.TMCS = tmcs;
+            }
+        });
         if (address)
             this.address = address;
         if (useSsl)
             this.ssl = true;
     }
+    /**
+     * The user.
+     * @class
+     * @param {string} uid - The uid of the user.
+     */
+    function User(uid)
+    {
+        this.uid = uid;
+        this.token = null;
+        this.profile = new UserProfile();
+        this.TMCS = new TMCS();
+        this.prvKey = null;
+    }
+    /**
+     * Get the infomation of the user.
+     * @param {responseCallback} [callback] - The callback that handles the result.
+     */
+    User.prototype.getProfile = function (callback)
+    {
+        if (!this.TMCS && callback)
+        {
+            callback({ code: -1, data: "Invalid calling." });
+            return;
+        }
+        var user = this;
+        this.TMCS.callAPI(
+            "/user/" + encodeURIComponent(this.uid),
+            "GET",
+            null,
+            function (result)
+            {
+                if (result.code != 0)
+                {
+                    switch (result.code)
+                    {
+                        case -210:
+                            result.data = "Access denied.";
+                            break;
+                        case -202:
+                            result.data = "User dose not exist.";
+                            break;
+                    }
+                }
+                else
+                {
+                    user.profile = new UserProfile();
+                    user.profile.nickName = result.data.nickName;
+                    user.profile.avatar = result.data.avatar;
+                    user.profile.note = result.data.note;
+                    user.profile.sex = result.data.sex;
+                    user.profile.status = result.data.status;
+                    user.profile.tag = result.data.tag;
+                    user.profile.pubKey = result.data.pubKey;
+                }
+
+                if (callback)
+                    callback(result);
+            });
+    }
+    TMCS.User = User;
+    function UserProfile()
+    {
+        this.nickName = "";
+        this.sex = "Unknown";
+        this.avatar = "http://img.sardinefish.com/NDc2NTU2";
+        this.status = "Offline";
+        this.note = "";
+        this.tag = "";
+    }
+    TMCS.UserProfile = UserProfile;
+
+    /**
+     * The Friend.
+     * @param {string} uid - The uid of the friend.
+     */
+    function Friend(uid)
+    {
+        this.uid = uid;
+        this.profile = new UserProfile();
+        this.tag = "";
+        this.note = "";
+        this.group = "";
+    }
+    /**
+     * Get the infomation of the friend.
+     * @param {responseCallback} [callback] - The callback that handles the result.
+     */
+    Friend.prototype.getProfile = function (callback)
+    {
+        if (!this.TMCS && callback) {
+            callback({ code: -1, data: "Invalid calling." });
+            return;
+        }
+        var friend = this;
+        this.TMCS.callAPI(
+            "/user/" + encodeURIComponent(this.uid),
+            "GET",
+            null,
+            function (result)
+            {
+                if (result.code != 0) {
+                    switch (result.code) {
+                        case -210:
+                            result.data = "Access denied.";
+                            break;
+                        case -202:
+                            result.data = "User dose not exist.";
+                            break;
+                    }
+                }
+                else {
+                    friend.profile = new UserProfile();
+                    friend.profile.nickName = result.data.nickName;
+                    friend.profile.avatar = result.data.avatar;
+                    friend.profile.note = result.data.note;
+                    friend.profile.sex = result.data.sex;
+                    friend.profile.status = result.data.status;
+                    friend.profile.tag = result.data.tag;
+                    friend.profile.pubKey = result.data.pubKey;
+                }
+
+                if (callback)
+                    callback(result);
+            });
+    }
+    TMCS.Friend = Friend;
 
     /**
      * The result of an api calling.
@@ -62,7 +207,7 @@
     * @public
     * @enum {number}
     */
-    TMCS.Status = { Disconnected: 0, Connecting: 1, HandShaking: 2, Running: 3, Closing: 4 };
+    TMCS.Status = { Offline: 0, Connecting: 1, HandShaking: 2, Online: 3, Closing: 4 };
 
     /**
      * The version of the TMCS client.
@@ -122,6 +267,8 @@
         }
         if (method.toUpperCase() === "PUT" || method.toUpperCase() === "POST")
             request.setRequestHeader("Content-Type", "application/json");
+        //request.setRequestHeader("Cache-Control", "no-cache");
+        request.withCredentials = true;
         request.onreadystatechange = function (e)
         {
             if (request.readyState != 4)
@@ -138,6 +285,8 @@
             else
             {
                 try {
+                    if (request.responseText == "")
+                        throw new Error();
                     var result = JSON.parse(request.responseText);
                     code = result.code;
                     data = result.data;
@@ -194,7 +343,7 @@
                     },
                     function (result)
                     {
-                        if (result != 0) 
+                        if (result.code != 0) 
                         {
                             switch (result.code)
                             {
@@ -204,7 +353,16 @@
                                 case -201:
                                     result.data = "Password incorrect.";
                                     break;
+                                case -100:
+                                    result.data = "Invalid parameters.";
+                                    break;
                             }
+                        }
+                        else
+                        {
+                            tmcs.user = new User(uid);
+                            tmcs.user.token = result.data.token;
+                            tmcs.status = TMCS.Status.Online;
                         }
                         if (callback)
                             callback(result);
@@ -225,7 +383,7 @@
                     },
                     function (result)
                     {
-                        if (result != 0) {
+                        if (result.code != 0) {
                             switch (result.code) {
                                 case -202:
                                     result.data = "User dose not exist.";
@@ -233,11 +391,25 @@
                                 case -201:
                                     result.data = "Private key incorrect.";
                                     break;
+                                case -100:
+                                    result.data = "Invalid parameters.";
+                                    break;
                             }
+                        }
+                        else
+                        {
+                            tmcs.user = new User(uid);
+                            tmcs.user.token = result.data.token;
+                            tmcs.status = TMCS.Status.Online;
                         }
                         if (callback)
                             callback(result);
                     });
+            }
+            else {
+                result.data = "Response error.";
+                if (callback)
+                    callback(result);
             }
         });
     };
@@ -286,26 +458,67 @@
      */
     TMCS.prototype.setInfo = function (key, value, callback)
     {
-
+        
     };
 
     /**
-     * Get the infom ation of the user.
-     * @param {string} key - The name of the info.
-     * @param {resultCallback} [callback] - The callback that handles the result.
-     * @param {string} [uid] - The name of the user.
+     * Get the infomation of the user.
+     * @param {string} uid - The name of the user.
+     * @param {resultCallback} callback - The callback that handles the result.
+     *//**
+     * Get the infomation of the current user.
+     * @param {resultCallback} callback - The callback that handels the result.
      */
-    TMCS.prototype.getInfo = function (key, callback, uid)
+    TMCS.prototype.getUserProfile = function (uid, callback)
     {
+        
+        var tmcs = this;
+        this.callAPI("/user/" + encodeURIComponent(uid), "GET", null, function (result)
+        {
+            
+        });
     };
 
     /**
      * Get the friends list of the user.
      * @param {resultCallback} [callback] - The callback that handles the result.
      */
-    TMCS.prototype.getFriends = function (callback)
+    TMCS.prototype.getContact = function (callback)
     {
-
+        if (this.status != TMCS.Status.Online)
+        {
+            callback({ code: -1, data: "You are offline." });
+            return;
+        }
+        var tmcs = this;
+        this.callAPI("/contact", "GET", null, function (result)
+        {
+            if(!result.code==0)
+            {
+                switch (result.code)
+                {
+                    case -210:
+                        result.data = "Access denied.";
+                        break;
+                }
+            }
+            else 
+            {
+                tmcs.friends = ArrayList();
+                for (var i = 0; i < result.data.length; i++)
+                {
+                    var data = result.data[i];
+                    /*var friend = new Friend(data.uid);
+                    friend.group = data.group;
+                    friend.note = data.note;
+                    friend.tag = data.tag;*/
+                    tmcs.friends.add(data);
+                }
+                result.data = tmcs.friends;
+            }
+            if (callback)
+                callback(result);
+        });
     };
 
     /**

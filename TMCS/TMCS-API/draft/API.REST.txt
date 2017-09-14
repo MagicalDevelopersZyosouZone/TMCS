@@ -32,13 +32,10 @@
     PUT     { "publicKey": "..." }
     DELETE  
 
-/friends
+/contact
     GET     
 
-/friends/{userId}
-    GET     
-    POST    字段
-                group
-                ...
+/contact/{userId}u89789 
+0               ...
 	PUT		{ "[group]": undefined, ... }
     DELETE  
