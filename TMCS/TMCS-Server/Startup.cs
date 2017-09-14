@@ -38,9 +38,10 @@ namespace TMCS.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-            
+            services.AddCors();
+
             services.AddDbContext<TMCSServerContext>(options =>
-                    options.UseSqlServer(Configuration.GetConnectionString("TMCSServerContext")));
+                    options.UseSqlite("Data Source=TMCS.db"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -54,6 +55,11 @@ namespace TMCS.Server
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug(LogLevel.Trace);
 
+            app.UseCors(builder =>
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader()
+                       .AllowCredentials());
             app.UseStaticFiles();
 
             app.UseMvc();

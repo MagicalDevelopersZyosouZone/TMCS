@@ -14,5 +14,18 @@ namespace TMCS.Server.Models
         }
 
         public DbSet<TMCS.Server.Models.User> User { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Contact>()
+                .HasKey(c => new { c.SubjectId, c.ObjectId });
+            modelBuilder.Entity<Contact>()
+                .HasOne(c => c.Subject)
+                .WithOne();
+            modelBuilder.Entity<Contact>()
+                .HasOne(c => c.Object)
+                .WithMany(u => u.Contacts)
+                .HasForeignKey(c => c.ObjectId);
+        }
     }
 }

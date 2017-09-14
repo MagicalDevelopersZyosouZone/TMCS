@@ -20,13 +20,6 @@ namespace TMCS.Server.Controllers
             _context = context;
         }
 
-        // GET: api/Users
-        [HttpGet]
-        public IEnumerable<User> GetUser()
-        {
-            return _context.User;
-        }
-
         // GET: api/Users/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser([FromRoute] string id)
