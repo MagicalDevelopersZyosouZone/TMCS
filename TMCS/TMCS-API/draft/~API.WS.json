@@ -13,7 +13,7 @@
         "userId"
       ],
       "returns": [
-        "authType: { 'password' | 'privateKey' }",
+        "authType: { 'Password' | 'PrivateKey' }",
         "{ authCode | salt, saltTmp }"
       ]
     },

@@ -1,0 +1,306 @@
+﻿@font-face {
+    font-family: 'Material Icons';
+    font-style: normal;
+    font-weight: 400;
+    src: url("fonts/material-design-icons-3.0.1/MaterialIcons-Regular.eot"); /* For IE6-8 */
+    src: local('Material Icons'),
+         local('MaterialIcons-Regular'),
+         url("fonts/material-design-icons-3.0.1/MaterialIcons-Regular.woff2") format('woff2'),
+         url("fonts/material-design-icons-3.0.1/MaterialIcons-Regular.woff") format('woff'),
+         url("fonts/material-design-icons-3.0.1/MaterialIcons-Regular.ttf") format('truetype');
+}
+.icon {
+    font-family: 'Material Icons';
+    line-height: 1;
+    font-style: normal;
+    display: inline-block;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+    /* Support for all WebKit browsers. */
+    -webkit-font-smoothing: antialiased;
+    /* Support for Safari and Chrome. */
+    text-rendering: optimizeLegibility;
+    /* Support for Firefox. */
+    -moz-osx-font-smoothing: grayscale;
+    /* Support for IE. */
+    font-feature-settings: 'liga';
+}
+.button {
+    text-align: center;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+    padding-left: 0.8em;
+    padding-right: 0.8em;
+    background-color: black;
+    display: inline-block;
+    color: white;
+    font-size: 0.5cm;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+html{
+    padding: 0px;
+    margin: 0px;
+}
+body {
+    background: #444444;
+    padding: 0px;
+    margin: 0px;
+    min-height: 100%;
+    font-family: "Microsoft YaHei",Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
+}
+input{
+    border: none 0px;
+}
+#side .item{
+    padding: 0.4em;
+}
+@keyframes slideIn{
+    from{
+        left: -100%;
+    }
+    to{
+        left: 0%;
+    }
+}
+.slideIn{
+    animation-duration: 0.3s;
+    animation-timing-function: ease-in;
+    animation-fill-mode: forwards;
+    animation-name: slideIn;
+}
+@keyframes slideOut{
+    from{
+        left: 0%;
+    }
+    to{
+        left: -100%;
+    }
+}
+.slideOut{
+    animation-duration: 0.3s;
+    animation-timing-function: ease-out;
+    animation-fill-mode: forwards;
+    animation-name: slideOut;
+
+}
+.friend{
+    
+}
+.friend .face{
+    display: inline-block;
+    width: 1.2cm;
+    height: 1.2cm;
+    border-radius: 50%;
+    overflow: hidden;
+    vertical-align: middle;
+}
+.friend .name{
+    display: inline-block;
+    margin-left: 0.4em;
+    vertical-align: middle;
+    font-size: 0.6cm;
+}
+.msgOpp{
+    position: relative;
+    padding: 0.4em;
+}
+.msgOpp .face{
+    width: 1cm;
+    height: 1cm;
+    border-radius: 50%;
+    display: inline-block;
+    vertical-align: top;
+}
+.msgOpp .msgBox{
+    position: relative;
+    display: inline-block;
+    margin-left: 0.4em;
+    max-width: calc(100% - 1.5cm);
+}
+.msgOpp .arrow{
+    border-top: solid 0.6em #4d90ff;
+    border-left: solid 0.6em rgba(0,0,0,0);
+    width: calc(100% - 5px);
+    position: absolute;
+    left: -0.6em;
+}
+.msgOpp .msg{
+    
+    padding: 0.4em;
+    padding-left: 0.8em;
+    padding-right: 0.8em;
+    border-radius: 5px;
+    border-radius-topleft: 0px;
+    background: #4d90ff;
+    color: white;
+}
+.msgSelf{
+    text-align: right;
+    position: relative;
+    padding: 0.4em;
+}
+.msgSelf .face{
+    width: 1cm;
+    height: 1cm;
+    border-radius: 50%;
+    display: inline-block;
+    vertical-align: top;
+}
+.msgSelf .msgBox{
+    position: relative;
+    display: inline-block;
+    margin-left: 0.4em;
+    max-width: calc(100% - 1.5cm);
+}
+.msgSelf .arrow{
+    border-right: solid 0.6em #4d90ff;
+    border-bottom: solid 0.6em rgba(0,0,0,0);
+    height: calc(100% - 5px);
+    position: absolute;
+    right: 0px;
+    bottom: -0.6em;
+}
+.msgSelf .msg{
+    
+    padding: 0.4em;
+    padding-left: 0.8em;
+    padding-right: 0.8em;
+    border-radius: 5px;
+    border-radius-topleft: 0px;
+    background: #4d90ff;
+    color: white;
+}
+#login{
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 1000000000;
+    overflow: hidden;
+    -ms-touch-action: none;
+    text-align: center;
+}
+#login-title {
+    font-size: 1cm;
+    margin-top: 3cm;
+    margin-bottom: 1em;
+    color: rgba(255,255,255,0.6);
+}
+#login-input {
+    display: inline-block;
+    vertical-align: middle;
+    width: 60%;
+    max-width: 32em;
+    margin-left: 1cm;
+}
+#login #buttons {
+    margin-top: 2em;
+    position: relative;
+}
+#login .button {
+    width: 10em;
+    position: absolute;
+}
+#login input {
+    background: rgba(255,255,255,0.4)
+}
+
+#uid{
+    width: calc(100% - 1.6em);
+    font-size: 0.6cm;
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
+    padding-left: 0.8em;
+    padding-right: 0.8em;
+    border-radius: 5px;
+}
+#pwd{
+    width: calc(100% - 1.6em);
+    font-size: 0.6cm;
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
+    padding-left: 0.8em;
+    padding-right: 0.8em;
+    margin-top: 1em;
+    border-radius: 5px;
+}
+#buttonLogin {
+    background-color: rgba(63, 150, 207, 0.8);
+}
+#buttonRegister {
+    right: 0px;
+    background-color: #666666;
+}
+
+#root{
+    display: relative;
+    z-index: 0;
+}
+#top {
+    display: block;
+    position: fixed;
+    width: 100%;
+    background: #222222;
+    color: white;
+    padding: 0.4em;
+    font-size: 0.6cm;
+}
+#buttonMenu{
+    font-size: 1cm;
+    vertical-align: middle;
+    color: gray;
+}
+#title{
+    margin-left: 1em;
+    display: inline-block;
+    vertical-align: middle;
+}
+#side {
+    position: fixed;
+    z-index: 100;
+    background: #333333;
+    color: rgba(255,255,255,0.7) width: 6cm;
+    height: 100%;
+    left: -100%;
+}
+#chat{
+    padding-top: 2cm;
+}
+#footer {
+    position: fixed;
+    bottom: 0px;
+    width: 100%;
+    background: gray;
+    padding: 0.4em;
+    background: #222222;
+}
+#inputArea .icon {
+    color: #555555;
+}
+#input {
+    border-radius: 5px;
+    background: #666666;
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
+    padding-left: 0.8em;
+    padding-right: 0.8em;
+    display: inline-block;
+    width: calc(100% - 3cm);
+    vertical-align: top;
+    overflow: auto;
+    white-space: wrap;
+    text-overflow: ellipsis-word;
+    max-height: 5em;
+}
+#buttonEmoji{
+    color: white;
+    font-size: 1cm;
+}
+#buttonSend{
+    color: white;
+    font-size: 1cm;
+}
