@@ -33,30 +33,7 @@ namespace TMCS_Test.Controllers
                     data = ex.Message
                 };
             }
-            if(TMCSTest.rand.NextDouble()<0.1)
-            {
-                return new
-                {
-                    code = -202,
-                    data = new { uid = uid, authCode = authCode }
-                };
-            }
-            else if (TMCSTest.rand.NextDouble()<0.8)
-            {
-                
-                Response.Cookies.Append("token", "I'm a token.");
-                return new
-                {
-                    code = 0,
-                    data = new
-                    {
-                        uid = uid,
-                        authCode = authCode,
-                        token= "I'm a token."
-                    }
-                };
-            }
-            else
+            if (TMCSTest.rand.NextDouble() < 0.05)
             {
                 return new
                 {
@@ -66,6 +43,28 @@ namespace TMCS_Test.Controllers
                         uid = uid,
                         authCode = authCode
                     }
+                };
+            }
+            if (authCode == TMCSTest.AUTH_CODE)
+            {
+                Response.Cookies.Append("token", "I'm a token.");
+                return new
+                {
+                    code = 0,
+                    data = new
+                    {
+                        uid = uid,
+                        authCode = authCode,
+                        token = "I'm a token."
+                    }
+                };
+            }
+            else
+            {
+                return new
+                {
+                    code = -202,
+                    data = new { uid = uid, authCode = authCode }
                 };
             }
         }

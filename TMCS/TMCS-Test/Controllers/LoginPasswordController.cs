@@ -19,10 +19,12 @@ namespace TMCS_Test.Controllers
             TMCSTest.CORS(Request, Response);
             string uid = "";
             string hash = "";
+            
             try
             {
                 uid = data.uid.ToString();
                 hash = data.hash.ToString();
+
             }
             catch (Exception ex)
             {

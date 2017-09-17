@@ -10,10 +10,8 @@
         <script src="../TMCS.js"></script>
         <script src="lib/HTMLTemplate/HTMLTemplate.js"></script>
         <script src="lib/HTMLTemplate/ObserveList.js"></script>
-        <script src="lib/pidCrypt/pidcrypt_c.js"></script>
-        <script src="lib/pidCrypt/pidcrypt_util_c.js"></script>
-        <script src="lib/pidCrypt/sha512_c.js"></script>
         <script src="lib/jsencrypt/jsencrypt.min.js"></script>
+        <script src="lib/crypto-js/crypto-js.js"></script>
         <link rel="stylesheet" type="text/css" href="style.css"/>
         <style>
 
@@ -25,7 +23,8 @@
             <div id="login-title" onselectstart="return false">Login</div>
             <div id="login-input">
                 <input type="text" id="uid" placeholder="Username" />
-                <input type="password" id="pwd" placeholder="Password" />
+                <input type="password" id="pwd" placeholder="PrvKey/Password" />
+                <textarea id="prvKey" placeholder="Private key"></textarea>
                 <div id="buttons">
                     <a id="buttonLogin" class="button">Sign in</a>
                     <a id="buttonRegister" class="button">Sign up</a>
@@ -40,11 +39,11 @@
         <div id="main" style="display: none;">
             <div id="side" onselectstart="return false;">
                 <div>
-                    <div class="item">
+                    <div class="item" style="display:none;">
                         <i id="buttonMenu" class="icon" onclick="$('#side').removeClass('slideIn');$('#side').addClass('slideOut');">menu</i>
                     </div>
                     <div id="myself" class="item">
-                        <img id="face" src="http://img.sardinefish.com/NDc2NTU2"/>
+                        <img id="avatar" src="http://img.sardinefish.com/NDc2NTU2"/>
                         <div id="info">
                             <div id="name">My Name</div>
                             <div id="uid">my_uid</div>
@@ -55,7 +54,7 @@
                     <div id="contacts">
                         <template id="contactTemplate">
                             <div class="item contact" onclick="contactClick('{uid}')">
-                                <img class="face" src="{avatar}"/>
+                                <img class="avatar" src="{avatar}"/>
                                 <div class="info">
                                     <div class="name">{name}</div>
                                     <div class= "status {status}"></div>
@@ -72,14 +71,14 @@
                 </div>
                 <div id="chat">
                     <div class="msgOpp">
-                        <img class="face" src="img/User_50.min.png"/>
+                        <img class="avatar" src="img/User_50.min.png"/>
                         <div class="msgBox">
                             <div class="arrow"></div>
                             <div class="msg">Hello!</div>
                         </div>
                     </div>
                     <div class="msgOpp">
-                        <img class="face" src="img/User_50.min.png"/>
+                        <img class="avatar" src="img/User_50.min.png"/>
                         <div class="msgBox">
                             <div class="arrow"></div>
                             <div class="msg">
@@ -95,13 +94,17 @@
                             <div class="arrow"></div>
                             <div class="msg">I see...</div>
                         </div>
-                        <img class="face" src="img/User_50.min.png"/>
+                        <img class="avatar" src="img/User_50.min.png"/>
                     </div>
                 </div>
                 <div id="footer">
-                    <div id="inputArea">
-                        <div id="input" contenteditable="true">Input</div>
-                        <i id="buttonEmoji" class="icon" onselectstart="return false">insert_emoticon</i>
+                    <div id="msgInput">
+                        <div id="inputBG">
+                            <div id="input" class="textbox" contenteditable="true">Input</div>
+                            <i id="buttonEmoji" class="icon" onselectstart="return false;">insert_emoticon</i>
+                            <i id="buttonImg" class="icon" onselectstart="return false;">image</i>
+                            <i id="buttonImg" class="icon" onselectstart="return false;">add</i>
+                        </div>
                         <i id="buttonSend" class=icon onselectstart="return false">send</i>
                     </div>
                 </div>
@@ -112,45 +115,74 @@
             try
             {
                 HTMLTemplate.Init();
-                var tmcsClient = new TMCS("localhost:5732", false);
+                var tmcsClient = new TMCS("server.dwscdv3.com:5732", false);
                 var contactsList = new ObserveList();
+                window.onload = initTMCS;
                 $("#buttonMenu").click(function (e)
                 {
 
                 });
-                $("#buttonLogin").click(function (e)
+
+                $("#buttonLogin").click(login);
+                $("#login-input #uid").get(0).onblur = function (e)
                 {
-                    tmcsClient = new TMCS("localhost:5732", false);
-                    $("#login #error-output").text("");
                     var uid = $("#uid").val();
-                    var pwd = $("#pwd").val();
-                    tmcsClient.login(uid, pwd, function (result)
+                    if (uid == "")
+                        return;
+                    tmcsClient.getLoginMethod(uid, function (result)
                     {
-                        if (result.code == 0)
+                        if (result.code != 0)
                         {
-                            $("#main").css("display", "block");
-                            $("#login").animate({ opacity: 0 }, 500, function ()
-                            {
-                                $("#login").css("display", "none");
-                            });
-                            initUser();
+                            $("#login #error-output").text(result.data);
+                            return;
                         }
                         else
                         {
-                            $("#login #error-output").text(result.data);
+                            if (result.data.authType == TMCS.User.AuthType.Password) {
+                                $("#login #error-output").text('Please input "password" to login successfully.');
+                                $("#login #pwd").css("display", "block");
+                                $("#login #prvKey").css("display", "none");
+                            }
+                            else if (result.data.authType == TMCS.User.AuthType.PrivateKey) {
+                                $("#login #prvKey").css("display", "block");
+                                $("#login #pwd").css("display", "none");
+                                $("#login #error-output").html('Please input<br>\
+<br>\
+-----BEGIN RSA PRIVATE KEY-----<br>\
+MIICWwIBAAKBgQCOE0MUSc/NWyHdX+VL27GSuZJofXMf9KKapokQhBIW0+UMMabi<br>\
+m6TwKcmCZGiHonibvBKYKGluxdzhC39A6hndqAlYG351ockJ6VrQd/JECV1vcFkd<br>\
+lnHVInBUKh/iQ1T8yPhZ4bSxFI9f+6Stlg2UCratwWm4Uhm43ulr13825wIDAQAB<br>\
+AoGAIG7zREFpZ9bjDzdiEAQyMG2ep63jxyrAqA9WgOe1fXKX+kWndFnVuGHBt7uW<br>\
+RUhowhyYHhYzo28V8mX+geIvTxph4NFVVBI+BVqu0bOW2FRGhAdGhx2uq2Qk5BQN<br>\
+eLSV/va0fWCXxCAD5eIKOQ7o7aZQBqncbf3MEYEc/VNkEskCQQDuApprLJi2gYqY<br>\
+XGKf6cHYFRv9PLedPzR79ongGTyLJW4asYgSpb9etlAx6MkVACvATbdCzlbZa1SK<br>\
+EIwC0LzLAkEAmNBbuUiU8JUI7erUib2HZGnOq7AhHVK1rt9bs2MWAHxKniIQOpl7<br>\
+Hd3AepfSErhJc8Xx/wqsmkT3BbMaPeQm1QJAPHE2y87IfViKXMThWuDfFEPQFtBL<br>\
+hMhfSLfELb/a6y83NdotxyaGYcQEu5f1MLsZYT2bM4D49z/VeTZYiAKAXwJASIHU<br>\
+g72kreKJMhpSbmi3bTWnEl+n1rn/6tGgOSWysthGr3GKMcPRXwJw6bpPuwImGAC8<br>\
+Kj9uVmSSsOmicetnYQJAYtfo5ivoC3yySs5P+iOmlYSyzya/QBRvLNAFKeccY1rm<br>\
+Cylj7GwF/uieA6xJbb4lZHMz0SHjxQkk1tt9ikT+fg==<br>\
+-----END RSA PRIVATE KEY-----<br>\
+<br>\
+ to login successfully.\
+                                    ');
+                            }
+                            $("#login-input #pwd").get(0).placeholder = result.data.authType;
                         }
                     });
-                    return;
-                    login(uid, pwd, function (succeed, msg)
+                }
+                //$("#login-input #uid").focus(function () { $("#login #error-output").text(""); });
+                //$("#login-input #pwd").focus(function () { $("#login #error-output").text(""); });
+
+                $("#login-input #uid").get(0).onkeypress = loginInputCommit;
+                $("#login-input #pwd").get(0).onkeypress = loginInputCommit;
+                function loginInputCommit(e)
+                {
+                    if(e.key=="Enter")
                     {
-                        if (!succeed)
-                        {
-                            alert(msg);
-                            return;
-                        }
-                        
-                    });
-                });
+                        login();
+                    }
+                }
                 function contactClick(uid)
                 {
                     initChat(uid);
@@ -163,57 +195,118 @@
                 }
                 var contacts = [];
                 var chatting = null;
+                function initTMCS()
+                {
+                    tmcsClient = new TMCS("server.dwscdv3.com:5732", false);
+                    tmcsClient.handshake(function (result)
+                    {
+                        if(result.code==0)
+                        {
+                            $("#login #error-output").text("Handshake succeed.");
+                        }
+                        else
+                        {
+                            $("#login #error-output").text(result.data);
+                        }
+                    });
+                }
+                function login()
+                {
+                    $("#login #error-output").text("");
+                    var uid = $("#login #uid").val();
+                    var key = "";
+
+                    if (tmcsClient.user.authType == TMCS.User.AuthType.Password)
+                        key = $("#login #pwd").val();
+                    else if (tmcsClient.user.authType == TMCS.User.AuthType.PrivateKey)
+                        key = $("#login #prvKey").val();
+
+                    if (key == "")
+                        $("#login #error-output").text("Please input your " + tmcsClient.user.authType.toLowerCase());
+
+                    tmcsClient.login(uid, key, function (result)
+                    {
+                        if (result.code == 0) {
+                            $("#login #pwd").val("");
+                            $("#login #prvKey").val("");
+                            $("#main").css("display", "block");
+                            $("#login").animate({ opacity: 0 }, 500, function ()
+                            {
+                                $("#login").css("display", "none");
+                            });
+                            initUser();
+                            initContacts();
+                            initWS();
+                        }
+                        else {
+                            $("#login #error-output").text(result.data);
+                        }
+                    });
+                    return;
+                    login(uid, pwd, function (succeed, msg)
+                    {
+                        if (!succeed) {
+                            alert(msg);
+                            return;
+                        }
+
+                    });
+                }
                 function initUser()
                 {
                     tmcsClient.user.getProfile(function (result)
                     {
                         if (result.code == 0)
                         {
+                            $("#myself #name").text(result.data.uid);
+                            if (result.data.nickName != "")
+                                $("#myself #name").text(result.data.nickName);
+                            $("#myself #uid").text(result.data.uid);
+                            $("#myself #status").removeClass("online");
+                            $("#myself #status").removeClass("offline");
+                            $("#myself #status").addClass(result.data.status.toLowerCase());
+                            $("#myself #avatar").attr("src", result.data.avatar);
 
                         }
                     });
                     return;
-                    getContacts(function (list)
-                    {
-                        tmcsClient.getContacts(function (result)
-                        {
-                            if (result.code == 0) {
-                                var container = $("#contactTemplate").get(0);
-                                contactsList = new ObserveList();
-                                for (var i = 0; i < result.data.length; i++) {
-                                    var data = result.data[i];
-                                    var contact = {
-                                        name: data.uid,
-                                        avatar: data.profile.avatar,
-                                        uid: data.uid,
-                                        status: data.profile.status.toLowerCase()
-                                    };
-                                    if (data.profile.nickName != "")
-                                        contact.name = data.profile.nickName;
-                                    if (data.note != "")
-                                        contact.name = data.note;
-                                    contactsList.add(contact);
-                                }
-                                container.dataSource = contactsList;
-
-                            }
-
-                        });
-                        var container = $("#contactTemplate").get(0);
-                        container.dataSource = list;
-                        //container.html("");
-                        //alert(list);
-                        contacts = list;
-                        for (var i = 0; i < list.length; i++)
-                        {
-                            contacts.msg = [];
-                            contacts[contacts[i].uid] = contacts[i];
-                        }
-                        //$(".contact").click(contactClick);
-                    });
                     startRecv(function (msg)
                     {
                         contacts[msg.sender].msg.add(msg);
+                    });
+                }
+                function initContacts()
+                {
+                    tmcsClient.getContacts(function (result)
+                    {
+                        if (result.code == 0) {
+                            var container = $("#contactTemplate").get(0);
+                            contactsList = new ObserveList();
+                            for (var i = 0; i < result.data.length; i++) {
+                                var data = result.data[i];
+                                var contact = {
+                                    name: data.uid,
+                                    avatar: data.profile.avatar,
+                                    uid: data.uid,
+                                    status: data.profile.status.toLowerCase()
+                                };
+                                if (data.profile.nickName != "")
+                                    contact.name = data.profile.nickName;
+                                if (data.note != "")
+                                    contact.name = data.note;
+                                contactsList.add(contact);
+                            }
+                            container.dataSource = contactsList;
+
+                        }
+
+                    });
+                }
+                function initWS()
+                {
+                    tmcsClient.initWebSocket(function (result)
+                    {
+                        var x = result;
                     });
                 }
             }

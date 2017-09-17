@@ -8,6 +8,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Net.WebSockets;
+using System.Threading;
+using System.Text;
 
 namespace TMCS_Test
 {
@@ -41,17 +44,27 @@ namespace TMCS_Test
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseCors(builder =>
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader()
+                       .AllowCredentials());
+
             app.UseWebSockets();
             app.UseMvc();
-            app.UseCors(builder =>
-            {
-                builder.WithOrigins("*");
-            });
+
             app.Use(async (context, next) =>
             {
-                if (context.Request.Path == "/TMCS")
+                if (context.Request.Path == "/ws")
                 {
-
+                    if (context.WebSockets.IsWebSocketRequest)
+                    {
+                        WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                        var handler = new WebSocketHandler(webSocket);
+                        TMCSTest.HandlerList.Add(handler);
+                        await handler.StartReceiev();
+                    }
                 }
                 else
                 {

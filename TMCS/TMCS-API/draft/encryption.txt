@@ -3,7 +3,7 @@
 // pwdHash: 计算出的密码Hash值
 // saltPwd: 每次设置密码时由客户端生成的随机字符串，用于混合密码明文计算hash值，服务器储存并保证在该密码生效的时间内salt不变，并随时透明公开。
 Register&Login Password:
-	pwdHash = SHA512(pwd + saltPwd)
+	pwdHash = SHA512(SHA512(pwd + saltPwd)+saltTmp)
 
 // 对于使用密码进行登陆验证，并信任服务器而将私钥保存在服务器的用户，设置或变更用于消息加密的RSA密钥时，对于私钥的加密算法
 // pwd: 用户的密码明文
@@ -20,5 +20,5 @@ SecretKey Encryption:
 // sign: 计算出的签名
 // text: 服务器指定的字符串
 // privateKey: 用户提供的私钥
-Private Key Auth Encryption: 
+Private Key Auth Encryption:	
 	sign = RSA.Encrypt(text, privateKey)

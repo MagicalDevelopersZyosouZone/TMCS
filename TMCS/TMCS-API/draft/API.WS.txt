@@ -1,0 +1,66 @@
+﻿[Sender->TMCS]
+	{
+		type: "Message/Signal",
+		receiverId: "[uid]",
+		data: {[data:object]}
+	}
+
+[TMCS->Receiver]
+	{
+		type: "Message/Signal",
+		senderId: "[uid]",
+		data: {[data:object]}
+	}
+
+[Message]
+	type = Message
+	data = 
+	[Sender->TMCS]
+		{
+			type: "Text/Image/Video/File",
+			data: "[MsgData]"
+		}
+
+[HandShake]
+	type = Signal
+	data = 
+	[Sender->TMCS]
+		{
+			signal: "HandShake",
+			data: 
+			{
+				uid: "[uid]",
+				token: "[token]"
+			}
+		}
+
+	[TMCS->Sender]
+		{
+			signal: "HandShake",
+			data: 
+			{
+				serverName: "[The name of this TMCS server]",
+                owner: "[The wwner of this TMCS server]",
+                version: "[The version of this TMCS server]",
+                pubKey: "[The public key of this TMCS server]""
+            }
+		}
+
+
+{
+	type: "Message",
+	receiverId: "[uid]",
+	data: {
+		type: "Text/Image/Video/File",
+		data: "[MsgData]"
+	}
+}
+
+{
+	type: "Signal",
+	receiverId: "[uid]",
+	data: {
+		signal: "HandShake/ContactRequest/...",
+		data: "[SignalData]"
+	}
+}

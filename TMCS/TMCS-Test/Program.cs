@@ -7,6 +7,9 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Text;
+using System.Text.Encodings;
+using System.Net;
 
 namespace TMCS_Test
 {
@@ -14,12 +17,18 @@ namespace TMCS_Test
     {
         public static void Main(string[] args)
         {
+            var data = Convert.ToBase64String(TMCSTest.RSAEncrypt(Encoding.UTF8.GetBytes("Test"), TMCSTest.PUBLIC_KEY));
+            var txt = Encoding.UTF8.GetString(TMCSTest.RSADecrypt(Convert.FromBase64String(data), TMCSTest.PRIVATE_KEY));
             BuildWebHost(args).Run();
         }
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
+                .UseKestrel(options =>
+                {
+                    options.Listen(IPAddress.Loopback, 5732);
+                })
                 .Build();
     }
 }

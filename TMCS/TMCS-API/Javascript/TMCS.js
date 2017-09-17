@@ -11,16 +11,25 @@
         this.uid = "";
         this.user = null;
         this.ssl = false;
-        this.websocket = null;//new WebSocket();
+        this.webSocket = null;//new WebSocket();
         this.connected = false;
         this.status = TMCS.Status.Offline;
-        this.friends = new Array();
+        this.contacts = new Array();
+        this.clientVersion = TMCS.version;
+        this.serverVersion = "0.0.0";
+        this.serverName = "TMCS";
+        this.serverOwner = "TMCS";
+        this.TMCSPubKey = null;
+        Event.defineEvent(this, "onMessage");
+        Event.defineEvent(this, "onSignal");
 
         var tmcs = this;
         Object.defineProperty(this, "connected", {
             get: function ()
             {
-                return (tmcs.websocket.readyState == 1);
+                if (!tmcs.webSocket)
+                    return false;
+                return (tmcs.webSocket.readyState == 1);
             }
 
         });
@@ -35,8 +44,8 @@
             {
                 if (!(value instanceof User))
                     throw new Error("An instance of User required.");
-                if (userSet)
-                    throw new Error("Cannot reset the user.");
+                /*if (userSet)
+                    throw new Error("Cannot reset the user.");*/
                 userSet = true;
                 user = value;
                 user.TMCS = tmcs;
@@ -59,7 +68,12 @@
         this.profile = new UserProfile();
         this.TMCS = new TMCS();
         this.prvKey = null;
+        this.prvKeyEnc = null;
+        this.authType = null;
+        this.salt = null;
+        this.authCode = null;
     }
+    User.AuthType = { PrivateKey: "PrivateKey", Password: "Password" };
     /**
      * Get the infomation of the user.
      * @param {responseCallback} [callback] - The callback that handles the result.
@@ -120,7 +134,7 @@
 
     /**
      * The Friend.
-     * @param {string} uid - The uid of the friend.
+     * @param {string} uid - The uid of the contact.
      */
     function Friend(uid)
     {
@@ -131,7 +145,7 @@
         this.group = "";
     }
     /**
-     * Get the infomation of the friend.
+     * Get the infomation of the contact.
      * @param {responseCallback} [callback] - The callback that handles the result.
      */
     Friend.prototype.getProfile = function (callback)
@@ -140,7 +154,7 @@
             callback({ code: -1, data: "Invalid calling." });
             return;
         }
-        var friend = this;
+        var contact = this;
         this.TMCS.callAPI(
             "/user/" + encodeURIComponent(this.uid),
             "GET",
@@ -158,14 +172,14 @@
                     }
                 }
                 else {
-                    friend.profile = new UserProfile();
-                    friend.profile.nickName = result.data.nickName;
-                    friend.profile.avatar = result.data.avatar;
-                    friend.profile.note = result.data.note;
-                    friend.profile.sex = result.data.sex;
-                    friend.profile.status = result.data.status;
-                    friend.profile.tag = result.data.tag;
-                    friend.profile.pubKey = result.data.pubKey;
+                    contact.profile = new UserProfile();
+                    contact.profile.nickName = result.data.nickName;
+                    contact.profile.avatar = result.data.avatar;
+                    contact.profile.note = result.data.note;
+                    contact.profile.sex = result.data.sex;
+                    contact.profile.status = result.data.status;
+                    contact.profile.tag = result.data.tag;
+                    contact.profile.pubKey = result.data.pubKey;
                 }
 
                 if (callback)
@@ -208,7 +222,7 @@
     * @enum {number}
     */
     TMCS.Status = { Offline: 0, Connecting: 1, HandShaking: 2, Online: 3, Closing: 4 };
-
+    TMCS.MessageType={Message:"Message",Signal:"Signal"};
     /**
      * The version of the TMCS client.
      * @public
@@ -219,34 +233,251 @@
     /**
      * Connect to the TMCS server.
      * @public
-     * @param {string} [address] - The address of a TMCS server
+     * @param {resultCallback} [callback] - The callback that handles the result.
      */
-    TMCS.prototype.connect = function (address, useSsl, callback)
+    TMCS.prototype.connect = function (callback)
     {
-        
-        if (url)
-            this.url = url;
-        if (!this.url)
-            throw new Error("URL required.");
-        if (useSsl)
-            this.ssl = true;
+        if (!this.address)
+            throw new Error("Address required.");
         var tmcs = this;
-        this.websocket.onopen = function (e)
-        {
-            tmcs.status = TMCS.Status.HandShaking();
-
-        }
         this.status = TMCS.Status.Connecting;
+        var url = "";
         if (this.ssl)
         {
-            this.websocket = new WebSocket("wss://" + address + "/TMCS");
+            url = "wss://" + this.address + "/ws";
         }
         else
         {
-            this.websocket = new WebSocket("ws://" + address + "/TMCS");
+            url = "ws://" + this.address + "/ws";
+        }
+        this.webSocket = new WebSocket(url);
+        this.webSocket.onopen = function (e)
+        {
+            tmcs.status = TMCS.Status.HandShaking;
+            if (callback)
+                callback({ code: 0, data: null });
         }
 
     };
+
+
+
+    TMCS.prototype.initWebSocket = function (callback)
+    {
+        var tmcs = this;
+        if(!this.user || !this.user.prvKey){
+            if(callback)
+                callback({code:1,data:"Please login."});
+            return;
+        }
+        // Check connection and connect if disconnected.
+        if (!this.connected) {
+            this.connect(function (result)
+            {
+                tmcs.initWebSocket(callback);
+            });
+            return;
+        }
+        // Check TMCS public key and get it if lost.
+        if (!this.TMCSPubKey || this.TMCSPubKey == "")
+        {
+            this.handshake(function (result)
+            {
+                if (result == 0)
+                    tmcs.initWebSocket(callback);
+
+                else if (callback)
+                    callback(result);
+            });
+            return;
+        }
+
+        this.webSocket.onmessage = function (e)
+        {
+            var receive = JSON.parse(e.data);
+            if (receive.type === "Signal" && receive.data.signal === "HandShake") {
+                if (callback)
+                    callback({ code: 0, data: receive.data.data });
+                tmcs.webSocket.onmessage = function (e) { tmcs.onMessageCallback(e); };
+                tmcs.webSocket.send(JSON.stringify({
+                    type: "Signal",
+                    receiverId: "TMCS",
+                    data: {
+                        signal: "Ready",
+                        data: null
+                    }
+                }))
+                tmcs.status = TMCS.Status.Online;
+            }
+            else if(callback) {
+                callback({ code: 1, data: "Unknown Error." });
+            }
+        };
+        var enc = new JSEncrypt();
+        enc.setPublicKey(this.TMCSPubKey);
+        
+        this.webSocket.send(JSON.stringify({
+            type: "Signal",
+            receiverId: "TMCS",
+            data: {
+                signal: "HandShake",
+                data: {
+                    uid: this.user.uid,
+                    token: this.user.token
+                }
+            }
+        })); 
+    }
+
+    TMCS.prototype.sendMessage = function (receiverId, type, data, callback)
+    {
+        var tmcs = this;
+        if (this.status != TMCS.Status.Online)
+        {
+            if (callback)
+                callback({ code: 1, data: "You are now offline." });
+            return;
+        }
+        var pubKey = "";
+        if (receiverId == "TMCS")
+        {
+            pubKey = this.TMCSPubKey;
+            send();
+        }
+        else if (this.contacts[receiverId])
+        {
+            pubKey = this.contacts[receiverId].profile.pubKey;
+            send();
+        }
+        else
+        {
+            this.getUserProfile(receiverId, function (result)
+            {
+                if (result.code != 0 && callback)
+                    callback(result);
+                else
+                {
+                    pubKey = result.data.pubKey;
+                    send();
+                }
+            });
+        }
+
+        function send()
+        {
+            var dataEnc = RSABlockEncrypt({
+                type: type,
+                data: data
+            }, pubKey);
+            tmcs.webSocket.send(JSON.stringify({
+                type: TMCS.MessageType.Message,
+                receiverId: receiverId,
+                data: dataEnc
+            }));
+            if (callback) {
+                callback({ code: 0, data: null });
+            }
+        }
+    }
+
+    TMCS.prototype.sendSignal = function (receiverId, signal, data, callback)
+    {
+        var tmcs = this;
+        if (this.status != TMCS.Status.Online) {
+            if (callback)
+                callback({ code: 1, data: "You are now offline." });
+            return;
+        }
+        var pubKey = "";
+        if (receiverId == "TMCS") {
+            pubKey = this.TMCSPubKey;
+            send();
+        }
+        else if (this.contacts[receiverId]) {
+            pubKey = this.contacts[receiverId].profile.pubKey;
+            send();
+        }
+        else {
+            this.getUserProfile(receiverId, function (result)
+            {
+                if (result.code != 0 && callback)
+                    callback(result);
+                else {
+                    pubKey = result.data.pubKey;
+                    send();
+                }
+            });
+        }
+
+        function send()
+        {
+            var dataEnc = RSAEncrypt(data, pubKey);
+            tmcs.webSocket.send(JSON.stringify({
+                type: TMCS.MessageType.Message,
+                receiverId: receiverId,
+                data: {
+                    type: type,
+                    data: dataEnc
+                }
+            }));
+            if (callback) {
+                callback({ code: 0, data: null });
+            }
+        }
+    }
+
+    TMCS.prototype.onMessageCallback = function (e)
+    {
+        var dataRcv = JSON.parse(e.data);
+        if (dataRcv instanceof Array)
+        {
+            for (var i = 0; i < dataRcv.length; i++)
+            {
+                if (dataRcv[i].type == TMCS.MessageType.Signal)
+                {
+                    this._signalCallback(dataRcv[i]);
+                }
+                else if (dataRcv[i].type == TMCS.MessageType.Message)
+                {
+                    this._messageCallback(dataRcv[i]);
+                }
+            }
+        }
+        else
+        {
+            if (dataRcv.type == TMCS.MessageType.Signal)
+            {
+                this._signalCallback(dataRcv);
+            }
+            else if (dataRcv.type == TMCS.MessageType.Message)
+            {
+                this._messageCallback(dataRcv);
+            }
+        }
+    }
+
+    TMCS.prototype._signalCallback = function (data)
+    {
+        var signal;
+        if (msgPackage.senderId != "TMCS") {
+            signal = RSABlockDecrypt(msgPackage.data, this.user.prvKey);
+            signal = JSON.parse(signal);
+            msgPackage.data = signal;
+        }
+        this.onSignal.invoke(msgPackage);
+    }
+
+    TMCS.prototype._messageCallback = function (msgPackage)
+    {
+        var msg;
+        if (msgPackage.senderId != "TMCS")
+        {
+            msg = RSABlockDecrypt(msgPackage.data, this.user.prvKey);
+            msg = JSON.parse(msg);
+            msgPackage.data = msg;
+        }
+        this.onMessage.invoke(msgPackage);
+    }
 
     /**
      * @param {string} url - The URL of the API.
@@ -275,8 +506,8 @@
                 return;
             if (!callback)
                 return;
-            var code = 0;
-            var data = null;
+            var code = 1;
+            var data = "Unknown Error.";
             if (request.status != 200)
             {
                 code = request.status;
@@ -307,9 +538,19 @@
      */
     TMCS.prototype.handshake = function (callback)
     {
-
+        var tmcs = this;
+        this.callAPI("/handshake", "GET", null, function (result)
+        {
+            if (result.code == 0) {
+                tmcs.serverName = result.data.serverName;
+                tmcs.serverOwner = result.data.owner;
+                tmcs.serverVersion = result.data.version;
+                tmcs.TMCSPubKey = result.data.pubKey;
+            }
+            if (callback)
+                callback(result);
+        });
     };
-
     
 
     /**
@@ -323,95 +564,106 @@
     TMCS.prototype.login = function (uid, key, callback)
     {
         var tmcs = this;
-        this.getLoginMethod(uid, function (result)
+        if (!this.user || !this.user.authType)
         {
-            if (result.code != 0)
+            this.getLoginMethod(uid, function (result)
             {
-                if (callback)
+                if (result.code != 0 && callback) {
                     callback(result);
+                }
+                else
+                    tmcs.login(callback);
+
+            });
+            return;
+        }
+        //Auth by password.
+        if (this.user.authType== User.AuthType.Password) {
+            var salt = this.user.salt;
+            var hashKey = CryptoJS.SHA256(key + salt).toString();
+            var prvKeyEnc = this.user.prvKeyEnc;
+            var prvKey = AES_CBC_Decrypt(prvKeyEnc, hashKey);
+            var authCode = RSADecrypt(this.user.authCode, prvKey);
+            if (!authCode) {
+                if (callback)
+                    callback({ code: -201, data: "Password incorrect." });
                 return;
             }
-            //Auth by password.
-            if (result.data.authType == "Password") 
-            {
-                tmcs.callAPI(
-                    "/login/password",
-                    "POST",
-                    {
-                        uid: uid,
-                        hash: pidCrypt.SHA512(key)
-                    },
-                    function (result)
-                    {
-                        if (result.code != 0) 
-                        {
-                            switch (result.code)
-                            {
-                                case -202:
-                                    result.data = "User dose not exist.";
-                                    break;
-                                case -201:
-                                    result.data = "Password incorrect.";
-                                    break;
-                                case -100:
-                                    result.data = "Invalid parameters.";
-                                    break;
-                            }
+            tmcs.callAPI(
+                "/login/key-auth",
+                "POST",
+                {
+                    uid: uid,
+                    authCode: authCode
+                },
+                function (result)
+                {
+                    if (result.code != 0) {
+                        switch (result.code) {
+                            case -202:
+                                result.data = "User dose not exist.";
+                                break;
+                            case -201:
+                                result.data = "Password incorrect.";
+                                break;
+                            case -100:
+                                result.data = "Invalid parameters.";
+                                break;
                         }
-                        else
-                        {
-                            tmcs.user = new User(uid);
-                            tmcs.user.token = result.data.token;
-                            tmcs.status = TMCS.Status.Online;
-                        }
-                        if (callback)
-                            callback(result);
-                    });
-            }
-            //Auth by private key.
-            else if (result.data.authType=="PrivateKey")
-            {
-                var jsEnc = new JSEncrypt({ default_key_size: 1024 });
-                jsEnc.getKey();
-                var authCode = jsEnc.decrypt(jsEnc.encrypt(result.data.authCode));
-                tmcs.callAPI(
-                    "/login/key-auth",
-                    "POST",
-                    {
-                        uid: uid,
-                        authCode: authCode
-                    },
-                    function (result)
-                    {
-                        if (result.code != 0) {
-                            switch (result.code) {
-                                case -202:
-                                    result.data = "User dose not exist.";
-                                    break;
-                                case -201:
-                                    result.data = "Private key incorrect.";
-                                    break;
-                                case -100:
-                                    result.data = "Invalid parameters.";
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            tmcs.user = new User(uid);
-                            tmcs.user.token = result.data.token;
-                            tmcs.status = TMCS.Status.Online;
-                        }
-                        if (callback)
-                            callback(result);
-                    });
-            }
-            else {
-                result.data = "Response error.";
+                    }
+                    else {
+                        tmcs.user.token = result.data.token;
+                        tmcs.status = TMCS.Status.Online;
+                        tmcs.user.prvKey = prvKey;
+                    }
+                    if (callback)
+                        callback(result);
+                });
+        }
+        //Auth by private key.
+        else if (this.user.authType == "PrivateKey") {
+            var authCode = RSADecrypt(tmcs.user.authCode, key);
+            if (!authCode) {
                 if (callback)
-                    callback(result);
+                    callback({ code: -201, data: "Private key incorrect." });
+                return;
             }
-        });
+            tmcs.callAPI(
+                "/login/key-auth",
+                "POST",
+                {
+                    uid: uid,
+                    authCode: authCode
+                },
+                function (result)
+                {
+                    if (result.code != 0) {
+                        switch (result.code) {
+                            case -202:
+                                result.data = "User dose not exist.";
+                                break;
+                            case -201:
+                                result.data = "Private key incorrect.";
+                                break;
+                            case -100:
+                                result.data = "Invalid parameters.";
+                                break;
+                        }
+                    }
+                    else {
+                        tmcs.user.token = result.data.token;
+                        tmcs.user.prvKey = key;
+                        tmcs.status = TMCS.Status.Online;
+                    }
+                    if (callback)
+                        callback(result);
+                });
+        }
+        else {
+            result.data = "Invalid Login method.";
+            if (callback)
+                callback(result);
+        }
     };
 
     /**
@@ -421,21 +673,30 @@
      */
     TMCS.prototype.getLoginMethod = function (uid, callback)
     {
-        this.callAPI("/login/" + encodeURIComponent(uid), "GET", null, function (response)
+        this.user = new User(uid);
+        var tmcs = this;
+        this.callAPI("/login/" + encodeURIComponent(uid), "GET", null, function (result)
         {
             if (!callback)
                 return;
 
-            if(response.code !=0)
+            if (result.code != 0)
             {
-                switch(response.code)
+                switch (result.code)
                 {
                     case -202:
-                        response.data="User dose not exist.";
+                        result.data = "User dose not exist.";
                         break;
                 }
             }
-            callback(response);
+            else
+            {
+                tmcs.user.authType = result.data.authType;
+                tmcs.user.authCode = result.data.authCode;
+                tmcs.user.salt = result.data.salt;
+                tmcs.user.prvKeyEnc = result.data.prvKeyEnc;
+            }
+            callback(result);
         });
     };
 
@@ -475,15 +736,30 @@
         var tmcs = this;
         this.callAPI("/user/" + encodeURIComponent(uid), "GET", null, function (result)
         {
-            
+            if (result.code != 0) {
+                switch (result.code)
+                {
+                    case -210:
+                        result.data = "Access denied.";
+                        break;
+                    case -202:
+                        result.data = "User does not exist.";
+                        break;
+                    default:
+                        result.data = "Unknown error.";
+                        break;
+                }
+            }
+            if (callback)
+                callback(result);
         });
     };
 
     /**
-     * Get the friends list of the user.
+     * Get the contacts list of the user.
      * @param {resultCallback} [callback] - The callback that handles the result.
      */
-    TMCS.prototype.getContact = function (callback)
+    TMCS.prototype.getContacts = function (callback)
     {
         if (this.status != TMCS.Status.Online)
         {
@@ -504,17 +780,18 @@
             }
             else 
             {
-                tmcs.friends = ArrayList();
+                tmcs.contacts = ArrayList();
                 for (var i = 0; i < result.data.length; i++)
                 {
                     var data = result.data[i];
-                    /*var friend = new Friend(data.uid);
-                    friend.group = data.group;
-                    friend.note = data.note;
-                    friend.tag = data.tag;*/
-                    tmcs.friends.add(data);
+                    /*var contact = new Friend(data.uid);
+                    contact.group = data.group;
+                    contact.note = data.note;
+                    contact.tag = data.tag;*/
+                    tmcs.contacts.add(data);
+                    tmcs.contacts[data.profile.uid]=data;
                 }
-                result.data = tmcs.friends;
+                result.data = tmcs.contacts;
             }
             if (callback)
                 callback(result);
@@ -522,21 +799,21 @@
     };
 
     /**
-     * Add a user as friend.
-     * @param {string} uid - The uid of the friend.
+     * Add a user as contact.
+     * @param {string} uid - The uid of the contact.
      * @param {resultCallback} [callback] - The callback that handles the result.
      */
-    TMCS.prototype.addFriend = function (uid, callback)
+    TMCS.prototype.addContact = function (uid, callback)
     {
 
     };
 
     /**
-     * Remove a friend.
+     * Remove a contact.
      * @param {string} uid - The uid of the user to be removed.
      * @param {resultCallback} [callback] - The callback that handles the result.
      */
-    TMCS.prototype.removeFriend = function (uid, callback)
+    TMCS.prototype.removeContact = function (uid, callback)
     {
 
     };
@@ -551,7 +828,82 @@
         
     }
 
+    function RSAEncrypt(data, pubKey)
+    {
+        var jsenc = new JSEncrypt();
+        jsenc.setPublicKey(pubKey);
+        return jsenc.encrypt(data);
+    }
 
+    function RSADecrypt(data, prvKey)
+    {
+        var jsenc = new JSEncrypt();
+        jsenc.setPrivateKey(prvKey);
+        return jsenc.decrypt(data);
+    }
+
+    function b64len(s)
+    {
+        var eqCount = 0;
+        if (s[s.length - 1] === "=") eqCount++;
+        if (s[s.length - 2] === "=") eqCount++;
+        return s.length * 3 / 4 - eqCount;
+    }
+
+    /**
+     * RSABlockEncrypt
+     * @param {string} data - The data to be encrypt.
+     * @param {string} pubKey - The public key.
+     */
+    function RSABlockEncrypt(data, pubKey)
+    {
+        var jsenc = new JSEncrypt();
+        jsenc.setPublicKey(pubKey);
+        var dataTest = jsenc.encrypt("a");
+        var length = b64len(dataTest) - 11;
+        var dataBase64 = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(data));
+        var idx = 0;
+        var dataEnc = "";
+        for (var idx = 0; idx < dataBase64.length; idx += length)
+        {
+            var block = dataBase64.substr(idx, length);
+            
+            dataEnc += ("|" + jsenc.encrypt(block));
+        }
+        return dataEnc;
+    }
+
+    /**
+     * RSABlockEncrypt
+     * @param {string} data - The data to be decrypt.
+     * @param {string} pubKey - The private key.
+     */
+    function RSABlockDecrypt(data, prvKey)
+    {
+        var jsenc = new JSEncrypt();
+        jsenc.setPrivateKey(prvKey);
+        var dataEncList = data.split("|");
+        var dataDec = "";
+        for (var i = 0; i < dataEncList.length; i++)
+        {
+            var dataEnc = dataEncList[i];
+            if (dataEnc == "")
+                continue;
+            dataDec += jsenc.decrypt(dataEnc);
+        }
+        dataDec = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(dataDec));
+        return dataDec;
+    }
+
+    function AES_CBC_Encrypt(data, key)
+    {
+        return CryptoJS.AES(data, key, { mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.ZeroPadding }).toString();
+    }
+
+    function AES_CBC_Decrypt(data, key)
+    {
+        return CryptoJS.AES.decrypt(data, key, { mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.ZeroPadding }).toString(CryptoJS.enc.Utf8);
+    }
 
     //ArrayList
     function ArrayList()
@@ -636,6 +988,10 @@
             this.def=null;
             this.handlers=ArrayList();
         }
+        /**
+         * Invoke the event handlers
+         * @param {object} [args] - The arguments to be sent to the event handler.
+         */
         Event.prototype.invoke=function(args)
         {
             if(!args["handled"])
@@ -650,11 +1006,21 @@
                     this.handlers[i](args);
             }
         }
+
+        /**
+         * Add an event handler to this event.
+         * @param {function} handler - The handler which handle the event.
+         */
         Event.prototype.add=function(handler)
         {
             
             this.handlers.add(handler);
         }
+
+        /**
+         * Remove an event handler from this event.
+         * @param {function} handler - The handler to be removed
+         */
         Event.prototype.remove=function(handler)
         {
             if(this.def==handler)
@@ -662,11 +1028,17 @@
             this.handlers.remove(handler);
         }
         
+        /**
+         * A event manager.
+         */
         function EventManager()
         {
             this.events={};
             this.eventNames=ArrayList();
         }
+
+        /** 
+         */
         EventManager.prototype.register=function(name,event)
         {
             if(name==undefined || name==null)
@@ -678,6 +1050,12 @@
         }
         Event.EventManager=EventManager;
         
+        /**
+         * Define a event to an object.
+         * @param {object} obj - The object that own the event.
+         * @param {string} name - The name of the event.
+         * @param {function} [handler] - Add a handler to this event after init.
+         */
         function defineEvent(obj,name,handler)
         {
             if(!obj)

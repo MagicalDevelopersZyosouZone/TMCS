@@ -15,6 +15,7 @@ namespace TMCS_Test.Controllers
         [HttpGet]
         public object Get()
         {
+            Response.Headers["Cache-Control"] = "no-cache";
             TMCSTest.CORS(Request, Response);
             if (!Request.Cookies.Keys.Contains("token") || Request.Cookies["token"] == "")
             {
@@ -24,7 +25,7 @@ namespace TMCS_Test.Controllers
                     data = "Please login."
                 };
             }
-            if (TMCSTest.rand.NextDouble() < 0.05)
+            if (TMCSTest.rand.NextDouble() < 0.01)
             {
                 return new
                 {
@@ -41,7 +42,6 @@ namespace TMCS_Test.Controllers
                     {
                         new
                         {
-                            uid="jack",
                             nickName="Jack",
                             group="default",
                             note="",
@@ -49,7 +49,6 @@ namespace TMCS_Test.Controllers
                         },
                         new
                         {
-                            uid="cherry",
                             nickName="CherrY",
                             group="default",
                             note="",
@@ -57,7 +56,6 @@ namespace TMCS_Test.Controllers
                         },
                         new
                         {
-                            uid="BROWN",
                             nickName="Miku",
                             group="default",
                             note="Hentai",
@@ -65,7 +63,6 @@ namespace TMCS_Test.Controllers
                         },
                         new
                         {
-                            uid="Dwscdv3",
                             nickName="Dwscdv3",
                             group="developer",
                             note="Dwscdv3",
@@ -73,7 +70,6 @@ namespace TMCS_Test.Controllers
                         },
                         new
                         {
-                            uid="SardineFish",
                             nickName="SardineeeFish",
                             group="developer",
                             note="SardineFish",

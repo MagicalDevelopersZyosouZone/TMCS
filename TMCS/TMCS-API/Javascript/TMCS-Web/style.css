@@ -1,4 +1,4 @@
-﻿@font-face {
+﻿@font-avatar {
     font-family: 'Material Icons';
     font-style: normal;
     font-weight: 400;
@@ -41,6 +41,10 @@
     cursor: pointer;
     border-radius: 5px;
 }
+.textbox p {
+    margin: 0px;
+}
+
 .offline {
     color: rgba(255, 255, 255, 0.3);
 }
@@ -116,11 +120,12 @@ input{
     border: none 0px;
 }
 #side .item {
-    padding: 0.4em;
+    padding: 1em;
     padding-left: 0.5cm;
     padding-right: 0.5cm;
 }
-#myself #face {
+
+#myself #avatar {
     border-radius: 100%;
     height: 2.4cm;
 }
@@ -131,7 +136,12 @@ input{
 }
 #myself #name {
     font-size: 0.8cm;
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 5.4em;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
+
 #myself #uid {
     color: rgba(255, 255, 255, 0.3);
 }
@@ -176,12 +186,11 @@ input{
 }
 .contact {
     cursor: pointer;
-    margin-top: 1em;
 }
 .contact:hover{
     background-color: rgba(0,0,0,0.3);
 }
-.contact .face{
+.contact .avatar{
     display: inline-block;
     width: 1.2cm;
     height: 1.2cm;
@@ -197,9 +206,9 @@ input{
 
 .msgOpp{
     position: relative;
-    padding: 0.4em;
+    padding: 0.8em;
 }
-.msgOpp .face{
+.msgOpp .avatar{
     width: 1cm;
     height: 1cm;
     border-radius: 50%;
@@ -232,9 +241,9 @@ input{
 .msgSelf{
     text-align: right;
     position: relative;
-    padding: 0.4em;
+    padding: 0.8em;
 }
-.msgSelf .face{
+.msgSelf .avatar{
     width: 1cm;
     height: 1cm;
     border-radius: 50%;
@@ -308,7 +317,6 @@ input{
     padding-left: 1cm;
 }
 
-
 #login #uid {
     width: calc(100% - 1.6em);
     font-size: 0.6cm;
@@ -319,6 +327,7 @@ input{
     border-radius: 5px;
 }
 #login #pwd{
+    display:none;
     width: calc(100% - 1.6em);
     font-size: 0.6cm;
     padding-top: 0.4em;
@@ -328,8 +337,25 @@ input{
     margin-top: 1em;
     border-radius: 5px;
 }
+#login #prvKey {
+    display: none;
+    width: calc(100% - 1.6em);
+    font-size: 0.4cm;
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
+    padding-left: 0.8em;
+    padding-right: 0.8em;
+    margin-top: 1em;
+    border-radius: 5px;
+    border: none;
+    height: 5em;
+    overflow: hidden;
+    background-color: rgba(255,255,255,0.4);
+    font-family: "Microsoft YaHei",Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
+}
 #buttonLogin {
     background-color: rgba(63, 150, 207, 0.8);
+    left: 0px;
 }
 #buttonRegister {
     right: 0px;
@@ -346,7 +372,7 @@ input{
     display: block;
     position: absolute;
     width: calc(100% - 0.8em);
-    background: #222222;
+    background: #282828;
     color: white;
     padding: 0.4em;
     font-size: 0.6cm;
@@ -359,7 +385,10 @@ input{
     vertical-align: middle;
     color: gray;
 }
-
+#myself {
+    padding: 1em;
+    background-color: rgba(255,255,255,0.05);
+}
 #title{
     margin-left: 1em;
     display: inline-block;
@@ -435,35 +464,51 @@ input{
     position: absolute;
     bottom: 0px;
     width: calc(100% - 0.8em);
-    background: gray;
-    padding: 0.4em;
-    background: #222222;
+    padding: 1em;
+    background: #282828;
     z-index: 10;
 }
-
-#inputArea .icon {
-    color: #555555;
+#msgInput {
+    position: relative;
 }
-#input {
+
+#msgInput .icon {
+    color: #555555;
+    vertical-align: middle;
+    cursor: pointer;
+}
+#msgInput #inputBG {
+    background-color: #666666;
     border-radius: 5px;
-    background: #666666;
+    position: relative;
+    height: auto;
+    display: inline-block;
+    width: calc(100% - 2cm);
+    vertical-align: middle;
+}
+#msgInput #inputBG .icon {
+    font-size: 0.8cm;
+}
+
+#msgInput #input {
+    border-radius: 5px;
     padding-top: 0.4em;
     padding-bottom: 0.4em;
     padding-left: 0.8em;
     padding-right: 0.8em;
     display: inline-block;
-    width: calc(100% - 3cm);
-    vertical-align: top;
+    width: calc(100% - 4cm);
+    height: auto;
+    vertical-align: middle;
     overflow: auto;
-    white-space: wrap;
-    text-overflow: ellipsis-word;
-    max-height: 5em;
-}
-#buttonEmoji{
+    white-space: normal;
+    text-overflow: ellipsis;
+    word-break: break-all;
+    color: rgba(255, 255, 255, 0.9);
+} 
+#buttonSend {
     color: white;
     font-size: 1cm;
-}
-#buttonSend{
-    color: white;
-    font-size: 1cm;
+    display: inline-block;
+    vertical-align: middle;
 }

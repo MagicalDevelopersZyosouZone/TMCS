@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Caching;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Caching.Memory;
+using System.Text;
 
 
 
@@ -38,7 +39,11 @@ namespace TMCS_Test.Controllers
         {
             TMCSTest.CORS(Request, Response);
             Response.Headers["Cache-Control"] = "no-cache";
-            if(TMCSTest.rand.NextDouble()<0.1)
+            var authCode= Convert.ToBase64String(
+                TMCSTest.RSAEncrypt(
+                    Encoding.UTF8.GetBytes(TMCSTest.AUTH_CODE),
+                    TMCSTest.PUBLIC_KEY));
+            if (TMCSTest.rand.NextDouble() < 0.1)
             {
                 return new
                 {
@@ -48,16 +53,15 @@ namespace TMCS_Test.Controllers
             }
             else if (TMCSTest.rand.NextDouble() < 0.5)
             {
-                var salt = TMCSTest.RandomSalt(256);
-                var saltTmp = TMCSTest.RandomSalt(256);
                 return new
                 {
                     code = 0,
                     data = new
                     {
                         authType = "Password",
-                        salt = salt,
-                        saltTmp = saltTmp
+                        salt = TMCSTest.SALT,
+                        authCode = authCode,
+                        prvKeyEnc = TMCSTest.ENCRYPTED_PRIVATE_KEY
                     }
                 };
             }
@@ -69,7 +73,7 @@ namespace TMCS_Test.Controllers
                     data = new
                     {
                         authType = "PrivateKey",
-                        authCode = "I'm authCode"
+                        authCode = authCode
                     }
                 };
             }
