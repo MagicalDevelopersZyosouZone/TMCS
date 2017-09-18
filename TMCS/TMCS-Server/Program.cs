@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using System.Net;
 
 namespace TMCS.Server
 {
@@ -18,7 +19,10 @@ namespace TMCS.Server
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseKestrel()
+                .UseKestrel(options =>
+                {
+                    options.Listen(IPAddress.Loopback, 5732);
+                })
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseStartup<Startup>()
                 .Build();
