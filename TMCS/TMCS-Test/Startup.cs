@@ -51,6 +51,7 @@ namespace TMCS_Test
                        .AllowAnyHeader()
                        .AllowCredentials());
 
+            app.UseStaticFiles();
             app.UseWebSockets();
             app.UseMvc();
 
