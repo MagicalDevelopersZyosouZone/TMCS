@@ -296,8 +296,6 @@
         {
             var receive = JSON.parse(e.data);
             if (receive.type === "Signal" && receive.data.signal === "HandShake") {
-                if (callback)
-                    callback({ code: 0, data: receive.data.data });
                 tmcs.webSocket.onmessage = function (e) { tmcs.onMessageCallback(e); };
                 tmcs.webSocket.send(JSON.stringify({
                     type: "Signal",
@@ -308,6 +306,8 @@
                     }
                 }))
                 tmcs.status = TMCS.Status.Online;
+                if (callback)
+                    callback({ code: 0, data: receive.data.data });
             }
             else if(callback) {
                 callback({ code: 1, data: "Unknown Error." });
@@ -365,10 +365,10 @@
 
         function send()
         {
-            var dataEnc = RSABlockEncrypt({
+            var dataEnc = RSABlockEncrypt(JSON.stringify({
                 type: type,
                 data: data
-            }, pubKey);
+            }), pubKey);
             tmcs.webSocket.send(JSON.stringify({
                 type: TMCS.MessageType.Message,
                 receiverId: receiverId,

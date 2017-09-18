@@ -27,7 +27,11 @@ namespace TMCS_Test
                 .UseStartup<Startup>()
                 .UseKestrel(options =>
                 {
-                    options.Listen(IPAddress.Loopback, 5732);
+                    options.Listen(IPAddress.Any, 5732);/*
+                    options.Listen(IPAddress.Any, 5732, listenOptions =>
+                    {
+                        listenOptions.UseHttps("/etc/letsencrypt/live/tmcs.mdzz.studio/fullchain.pem");
+                    });*/
                 })
                 .Build();
     }

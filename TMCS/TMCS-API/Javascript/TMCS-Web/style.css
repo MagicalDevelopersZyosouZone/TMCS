@@ -190,13 +190,33 @@ input{
 .contact:hover{
     background-color: rgba(0,0,0,0.3);
 }
-.contact .avatar{
+.contact .avatar {
     display: inline-block;
     width: 1.2cm;
     height: 1.2cm;
-    border-radius: 50%;
-    overflow: hidden;
     vertical-align: middle;
+    position: relative;
+}
+.contact .avatar img {
+    border-radius: 50%;
+    width: 100%;
+}
+.contact .msgCount {
+    background-color: red;
+    position: absolute;
+    height: 40%;
+    color: white;
+    right: -10%;
+    top: -10%;
+    text-align: center;
+    line-height: 1.35em;
+    border-radius: 1em;
+    padding-left: 0.4em;
+    padding-right: 0.4em;
+    font-size: 0.8em;
+}
+.contact .noMsg {
+    display: none;
 }
 .contact .name {
     vertical-align: middle;
@@ -373,7 +393,7 @@ input{
     position: absolute;
     width: calc(100% - 0.8em);
     background: #282828;
-    color: white;
+    color: rgba(255,255,255,0.7);
     padding: 0.4em;
     font-size: 0.6cm;
     z-index: 10;
@@ -459,6 +479,7 @@ input{
 }
 #chat {
     height: calc(100% - 4cm);
+    padding-top: 2cm;
 }
 #footer {
     position: absolute;

@@ -165,6 +165,7 @@ namespace TMCS_Test
                 }
             };
             var msgToSendJson = await TMCSTest.JSONStringifyAsync(send);
+            await SendTextAsync(msgToSendJson);
         }
 
         public async Task HandleSignal(JObject signalData)

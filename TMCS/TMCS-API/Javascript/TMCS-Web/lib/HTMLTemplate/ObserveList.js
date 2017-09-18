@@ -216,7 +216,7 @@
             obsList.onRemove.invoke(args);
             if(args.cancle)
                 return false;
-            for(var i=index;i<list.length---1;i++)
+            for(var i=index;i<list.length-1;i++)
             {
                 list[i]=list[i+1];
             }
