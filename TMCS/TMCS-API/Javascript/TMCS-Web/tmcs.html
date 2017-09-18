@@ -53,10 +53,10 @@
                     <div id="contact"></div>
                     <div id="contacts">
                         <template id="contactTemplate">
-                            <div class="item contact" onclick="contactClick('{uid}')">
+                            <div class="item contact {chatting}" onclick="contactClick('{uid}')">
                                 <div class="avatar">
                                     <img src="{avatar}" />
-                                    <div class="msgCount {msgStatus}">{msgCount}</div>
+                                    <div class="msgCount {msgStatus}">{unread}</div>
                                 </div>
                                 <div class="info">
                                     <div class="name">{name}</div>
@@ -94,6 +94,13 @@
                         <i id="buttonSend" class=icon onselectstart="return false">send</i>
                     </div>
                 </div>
+                <div id="logoBackground">
+                    <div id="logo">
+                        <div>TMCS</div>
+                        <div>LOGO</div>
+                    </div>
+                    <div style="color: rgba(255, 255, 255, 0.4); font-size: 2cm; margin-left: 1cm;">TMCS</div>
+                </div>
             </div>
         </div>
         <script>
@@ -101,7 +108,7 @@
             try
             {
                 HTMLTemplate.Init();
-                var tmcsClient = new TMCS("localhost:443", true);
+                var tmcsClient = new TMCS("localhost:5732", false);
                 var contactsList = new ObserveList();
                 window.onload = initTMCS;
                 $("#buttonMenu").click(function (e)
@@ -112,22 +119,96 @@
                 $("#buttonLogin").click(login);
                 $("#login-input #uid").get(0).onblur = function (e)
                 {
+                    preLogin();
+                }
+                //$("#login-input #uid").focus(function () { $("#login #error-output").text(""); });
+                //$("#login-input #pwd").focus(function () { $("#login #error-output").text(""); });
+
+                $("#login-input #uid").get(0).onkeypress = loginInputCommit;
+                $("#login-input #pwd").get(0).onkeypress = loginInputCommit;
+
+
+                $("#msgInput #input").get(0).onkeypress = function (e)
+                {
+                    if (e.key == "Enter")
+                        sendMsg();
+                }
+                $("#buttonSend").click(function (e)
+                {
+                    sendMsg();
+                });
+                function loginInputCommit(e)
+                {
+                    if(e.key=="Enter")
+                    {
+                        login();
+                    }
+                }
+                function contactClick(uid)
+                {
+                    initChat(uid);
+                }
+                function initChat(uid)
+                {
+                    if (chatting)
+                    {
+                        var idx = contactsList.indexOf(chatting);
+                        chatting.chatting = "noChatting";
+                        contactsList.removeAt(idx);
+                        contactsList.insert(chatting, idx);
+                    }
+
+                    chatting = contactsList[uid];
+                    chatting.msgStatus = "noMsg";
+                    chatting.unread = 0;
+                    chatting.chatting = "chatting";
+                    $("#top #title").text(chatting.name);
+                    var chatTemplate = $("#chatTemplate").get(0);
+                    chatTemplate.dataSource = chatting.msg;
+                    var idx = contactsList.indexOf(chatting);
+                    contactsList.removeAt(idx);
+                    contactsList.insert(chatting, idx);
+                    $("#chat").css("display", "block");
+                    $("#top").css("display", "block");
+                    $("#footer").css("display", "block");
+
+                }
+                function sendMsg()
+                {
+
+                    if (!chatting && !chatting.uid) {
+                        return;
+                    }
+                    var text = $("#msgInput #input").text();
+                    if (text == "")
+                        return;
+                    tmcsClient.sendMessage(chatting.uid, TMCS.MessageType.Message, text);
+                    chatting.msg.add({
+                        sender: "msgSelf",
+                        avatar: tmcsClient.user.profile.avatar,
+                        data: text
+                    });
+                    $("#msgInput #input").text("");
+                    contactsList.remove(chatting);
+                    contactsList.insert(chatting, 0);
+                }
+                function preLogin()
+                {
                     var uid = $("#uid").val();
                     if (uid == "")
                         return;
                     tmcsClient.getLoginMethod(uid, function (result)
                     {
-                        if (result.code != 0)
-                        {
+                        if (result.code != 0) {
                             $("#login #error-output").text(result.data);
                             return;
                         }
-                        else
-                        {
+                        else {
                             if (result.data.authType == TMCS.User.AuthType.Password) {
                                 $("#login #error-output").text('Please input "password" to login successfully.');
                                 $("#login #pwd").css("display", "block");
                                 $("#login #prvKey").css("display", "none");
+                                $("#login #pwd").get(0).focus();
                             }
                             else if (result.data.authType == TMCS.User.AuthType.PrivateKey) {
                                 $("#login #prvKey").css("display", "block");
@@ -154,54 +235,16 @@ Cylj7GwF/uieA6xJbb4lZHMz0SHjxQkk1tt9ikT+fg==<br>\
                                     ');
                             }
                             $("#login-input #pwd").get(0).placeholder = result.data.authType;
+                            $("#login #prvKey").get(0).focus();
                         }
                     });
                 }
-                //$("#login-input #uid").focus(function () { $("#login #error-output").text(""); });
-                //$("#login-input #pwd").focus(function () { $("#login #error-output").text(""); });
-
-                $("#login-input #uid").get(0).onkeypress = loginInputCommit;
-                $("#login-input #pwd").get(0).onkeypress = loginInputCommit;
-
-                $("#buttonSend").click(function (e)
-                {
-                    if (!chatting && !chatting.uid) {
-                        return;
-                    }
-                    var text = $("#msgInput #input").text();
-                    if (text == "")
-                        return;
-                    tmcsClient.sendMessage(chatting.uid, TMCS.MessageType.Message, text);
-                    chatting.msg.add({
-                        sender: "msgSelf",
-                        avatar: tmcsClient.user.profile.avatar,
-                        data: text
-                    });
-                    $("#msgInput #input").text("");
-                });
-                function loginInputCommit(e)
-                {
-                    if(e.key=="Enter")
-                    {
-                        login();
-                    }
-                }
-                function contactClick(uid)
-                {
-                    initChat(uid);
-                }
-                function initChat(uid)
-                {
-                    chatting = contactsList[uid];
-                    $("#top #title").text(uid);
-                    var chatTemplate = $("#chatTemplate").get(0);
-                    chatTemplate.dataSource = chatting.msg;
-                }
                 var contacts = [];
                 var chatting = null;
+
                 function initTMCS()
                 {
-                    tmcsClient = new TMCS("localhost:443", true);
+                    tmcsClient = new TMCS("localhost:5732", false);
                     tmcsClient.handshake(function (result)
                     {
                         if(result.code==0)
@@ -219,7 +262,11 @@ Cylj7GwF/uieA6xJbb4lZHMz0SHjxQkk1tt9ikT+fg==<br>\
                     $("#login #error-output").text("");
                     var uid = $("#login #uid").val();
                     var key = "";
-
+                    if (!tmcsClient.user || !tmcsClient.user.authType)
+                    {
+                        preLogin();
+                        return;
+                    }
                     if (tmcsClient.user.authType == TMCS.User.AuthType.Password)
                         key = $("#login #pwd").val();
                     else if (tmcsClient.user.authType == TMCS.User.AuthType.PrivateKey)
@@ -289,9 +336,10 @@ Cylj7GwF/uieA6xJbb4lZHMz0SHjxQkk1tt9ikT+fg==<br>\
                                     uid: data.profile.uid,
                                     avatar: data.profile.avatar,
                                     status: data.profile.status.toLowerCase(),
-                                    msgCount: 0,
+                                    unread: 0,
                                     msgStatus: "noMsg",
-                                    msg: new ObserveList()
+                                    msg: new ObserveList(),
+                                    chatting: "noChatting"
                                 };
                                 if (data.profile.nickName != "")
                                     contact.name = data.profile.nickName;
@@ -336,14 +384,16 @@ Cylj7GwF/uieA6xJbb4lZHMz0SHjxQkk1tt9ikT+fg==<br>\
                         if (contactsList[i].uid == msg.senderId)
                         {
                             var contact = contactsList[i];
-                            contact.msgCount++;
-                            if (contact.msgCount >= 1)
-                                contact.msgStatus = 0;
+                            contact.unread++;
+                            if (contact.unread >= 1)
+                                contact.msgStatus = "onMsg";
                             contact.msg.add({
                                 sender: "msgOpp",
                                 avatar: contactsList[i].avatar,
                                 data: msg.data.data
                             });
+                            if (contact.chatting == "chatting")
+                                contact.msgStatus = "noMsg";
                             contactsList.removeAt(i);
                             contactsList.insert(contact, 0);
                         }

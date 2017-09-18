@@ -34,7 +34,7 @@ namespace TMCS_Test.Controllers
                     data = ex.Message
                 };
             }
-            if (TMCSTest.rand.NextDouble()<0.1)
+            if (TMCSTest.rand.NextDouble()<0.01)
             {
                 return new
                 {
@@ -42,7 +42,7 @@ namespace TMCS_Test.Controllers
                     data = new { uid = uid, hash = hash }
                 };
             }
-            else if (TMCSTest.rand.NextDouble() < 0.8)
+            else if (TMCSTest.rand.NextDouble() < 0.99)
             {
                 Response.Cookies.Append("token", "I'm a token.");
                 return new

@@ -63,7 +63,8 @@ namespace TMCS_Test
                     {
                         WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
                         var handler = new WebSocketHandler(webSocket);
-                        TMCSTest.HandlerList.Add(handler);
+                        await handler.WaitHandShake();
+                        TMCSTest.HandlerList[handler.Uid] = handler;
                         await handler.StartReceiev();
                     }
                 }

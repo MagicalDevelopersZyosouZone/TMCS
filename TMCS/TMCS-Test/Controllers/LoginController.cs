@@ -43,7 +43,7 @@ namespace TMCS_Test.Controllers
                 TMCSTest.RSAEncrypt(
                     Encoding.UTF8.GetBytes(TMCSTest.AUTH_CODE),
                     TMCSTest.PUBLIC_KEY));
-            if (TMCSTest.rand.NextDouble() < 0.1)
+            if (TMCSTest.rand.NextDouble() < 0.01)
             {
                 return new
                 {

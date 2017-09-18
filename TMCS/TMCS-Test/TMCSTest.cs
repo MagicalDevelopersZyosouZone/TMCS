@@ -49,9 +49,10 @@ Cylj7GwF/uieA6xJbb4lZHMz0SHjxQkk1tt9ikT+fg==
         public const string SALT = "Salt? Salt!";
         public const string AUTH_CODE = "I'm authCode";
 
-        public static List<WebSocketHandler> HandlerList = new List<WebSocketHandler>();
+        public static Dictionary<string, WebSocketHandler> HandlerList = new Dictionary<string, WebSocketHandler>();
         public static Random rand = new Random();
         public static string[] UserList = new string[] { "jack", "cherry", "BROWN", "Dwscdv3", "SardineFish" };
+        
 
         [JsonObject]
         public class Message

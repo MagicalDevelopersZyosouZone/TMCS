@@ -25,7 +25,7 @@ namespace TMCS_Test.Controllers
         {
             Response.Headers["Cache-Control"] = "no-cache";
             TMCSTest.CORS(Request, Response);
-            if (TMCSTest.rand.Next() < 0.1 || !Request.Cookies.Keys.Contains("token"))
+            if (TMCSTest.rand.Next() < 0.01 || !Request.Cookies.Keys.Contains("token"))
             {
                 return new
                 {
@@ -36,7 +36,7 @@ namespace TMCS_Test.Controllers
                     }
                 };
             }
-            if (TMCSTest.rand.NextDouble() < 0.1)
+            if (TMCSTest.rand.NextDouble() < 0.01)
             {
                 return new
                 {

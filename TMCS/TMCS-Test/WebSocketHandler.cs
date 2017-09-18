@@ -51,56 +51,9 @@ namespace TMCS_Test
         {
             if (WebSocket != null)
             {
-                if(WebSocket.State == WebSocketState.Open)
+                if(this.Uid==null || this.Uid=="")
                 {
-                    // Wait for handshake
-                    var handshakeData = JObject.Parse(await Receive());
-                    if (handshakeData["receiverId"] == null ||
-                        handshakeData["receiverId"].ToString() != "TMCS" ||
-                        handshakeData["type"] == null ||
-                        handshakeData["type"].ToString() != "Signal" ||
-                        handshakeData["data"]["signal"] == null ||
-                        handshakeData["data"]["signal"].ToString() != "HandShake"
-                        )
-                    {
-                        await SendTextAsync(await TMCSTest.JSONStringifyAsync(new
-                        {
-                            type = "Signal",
-                            senderId = "TMCS",
-                            receiverId = "[user]",
-                            data = new
-                            {
-                                signal = "Error",
-                                data = -100
-                            }
-                        }));
-                        return;
-                    }
-                    await HandShake(handshakeData["data"]["data"]);
-
-                    // Wait for start signal
-                    var readyData = JObject.Parse(await Receive());
-                    if (readyData["receiverId"] == null ||
-                        readyData["receiverId"].ToString() != "TMCS" ||
-                        readyData["type"] == null ||
-                        readyData["type"].ToString() != "Signal" ||
-                        readyData["data"]["signal"] == null ||
-                        readyData["data"]["signal"].ToString() != "Ready"
-                        )
-                    {
-                        await SendTextAsync(await TMCSTest.JSONStringifyAsync(new
-                        {
-                            type = "Signal",
-                            senderId = "TMCS",
-                            receiverId = "[user]",
-                            data = new
-                            {
-                                signal = "Error",
-                                data = -100
-                            }
-                        }));
-                        return;
-                    }
+                    await WaitHandShake();
                 }
                 var msgToSend = new TMCSTest.Message[] {
                                     new TMCSTest.Message("SardineFish", Uid, TMCSTest.MessageType.Text, "Welcom to TMCS!"),
@@ -146,26 +99,97 @@ namespace TMCS_Test
             await WebSocket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(text)), WebSocketMessageType.Text, true, CancellationToken.None);
         }
 
+        public async Task WaitHandShake()
+        {
+            if (WebSocket.State == WebSocketState.Open)
+            {
+                // Wait for handshake
+                var handshakeData = JObject.Parse(await Receive());
+                if (handshakeData["receiverId"] == null ||
+                    handshakeData["receiverId"].ToString() != "TMCS" ||
+                    handshakeData["type"] == null ||
+                    handshakeData["type"].ToString() != "Signal" ||
+                    handshakeData["data"]["signal"] == null ||
+                    handshakeData["data"]["signal"].ToString() != "HandShake"
+                    )
+                {
+                    await SendTextAsync(await TMCSTest.JSONStringifyAsync(new
+                    {
+                        type = "Signal",
+                        senderId = "TMCS",
+                        receiverId = "[user]",
+                        data = new
+                        {
+                            signal = "Error",
+                            data = -100
+                        }
+                    }));
+                    return;
+                }
+                await HandShake(handshakeData["data"]["data"]);
+
+                // Wait for start signal
+                var readyData = JObject.Parse(await Receive());
+                if (readyData["receiverId"] == null ||
+                    readyData["receiverId"].ToString() != "TMCS" ||
+                    readyData["type"] == null ||
+                    readyData["type"].ToString() != "Signal" ||
+                    readyData["data"]["signal"] == null ||
+                    readyData["data"]["signal"].ToString() != "Ready"
+                    )
+                {
+                    await SendTextAsync(await TMCSTest.JSONStringifyAsync(new
+                    {
+                        type = "Signal",
+                        senderId = "TMCS",
+                        receiverId = "[user]",
+                        data = new
+                        {
+                            signal = "Error",
+                            data = -100
+                        }
+                    }));
+                    return;
+                }
+            }
+        }
+
         public async Task HandleMessage(JObject msgData)
         {
             var receiver=msgData["receiverId"].ToString();
-            var sender = "";
-            if (TMCSTest.rand.NextDouble() < 0.5)
+            if (TMCSTest.HandlerList.ContainsKey(receiver))
             {
-                sender = receiver;
+                var send = new object[] {
+                    new {
+                        type = msgData["type"].ToString(),
+                        senderId = Uid,
+                        data =  msgData["data"].ToString()
+                    }
+                };
+
+                var msgToSendJson = await TMCSTest.JSONStringifyAsync(send);
+                await TMCSTest.HandlerList[receiver].SendTextAsync(msgToSendJson);
             }
             else
-                sender = TMCSTest.RandomUid();
-
-            var send = new object[] {
-                new {
-                    type = msgData["type"].ToString(),
-                    senderId = sender,
-                    data =  msgData["data"].ToString()
+            {
+                var sender = "";
+                if (TMCSTest.rand.NextDouble() < 0.5)
+                {
+                    sender = receiver;
                 }
-            };
-            var msgToSendJson = await TMCSTest.JSONStringifyAsync(send);
-            await SendTextAsync(msgToSendJson);
+                else
+                    sender = TMCSTest.RandomUid();
+                var send = new object[] {
+                    new {
+                        type = msgData["type"].ToString(),
+                        senderId = sender,
+                        data =  msgData["data"].ToString()
+                    }
+                };
+
+                var msgToSendJson = await TMCSTest.JSONStringifyAsync(send);
+                await SendTextAsync(msgToSendJson);
+            }
         }
 
         public async Task HandleSignal(JObject signalData)

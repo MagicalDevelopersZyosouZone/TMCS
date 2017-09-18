@@ -33,7 +33,7 @@ namespace TMCS_Test.Controllers
                     data = ex.Message
                 };
             }
-            if (TMCSTest.rand.NextDouble() < 0.05)
+            if (TMCSTest.rand.NextDouble() < 0.01)
             {
                 return new
                 {

@@ -244,6 +244,10 @@
             }
             list[index]=obj;
         }
+        this.indexOf = function (obj)
+        {
+            return list.indexOf(obj);
+        }
     }
     return ObserveList;
 })();
