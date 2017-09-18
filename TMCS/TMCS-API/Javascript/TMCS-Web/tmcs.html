@@ -101,7 +101,7 @@
             try
             {
                 HTMLTemplate.Init();
-                var tmcsClient = new TMCS("localhost:5732", false);
+                var tmcsClient = new TMCS("localhost:443", true);
                 var contactsList = new ObserveList();
                 window.onload = initTMCS;
                 $("#buttonMenu").click(function (e)
@@ -201,7 +201,7 @@ Cylj7GwF/uieA6xJbb4lZHMz0SHjxQkk1tt9ikT+fg==<br>\
                 var chatting = null;
                 function initTMCS()
                 {
-                    tmcsClient = new TMCS("localhost:5732", false);
+                    tmcsClient = new TMCS("localhost:443", true);
                     tmcsClient.handshake(function (result)
                     {
                         if(result.code==0)
