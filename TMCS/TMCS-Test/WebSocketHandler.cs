@@ -89,6 +89,9 @@ namespace TMCS_Test
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex);
+                        if (Uid != null && Uid != "")
+                            TMCSTest.HandlerList.Remove(Uid);
+                        return;
                     }
                 }
             }

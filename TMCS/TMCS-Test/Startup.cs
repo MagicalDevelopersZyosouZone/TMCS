@@ -54,12 +54,11 @@ namespace TMCS_Test
             app.UseStaticFiles();
             app.UseWebSockets();
             app.UseMvc();
-
             app.Use(async (context, next) =>
             {
-                if (context.Request.Path == "/ws")
+                if (context.WebSockets.IsWebSocketRequest)
                 {
-                    if (context.WebSockets.IsWebSocketRequest)
+                    if (context.Request.Path == "/ws")
                     {
                         WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
                         var handler = new WebSocketHandler(webSocket);
@@ -67,10 +66,10 @@ namespace TMCS_Test
                         TMCSTest.HandlerList[handler.Uid] = handler;
                         await handler.StartReceiev();
                     }
-                }
-                else
-                {
-                    await next();
+                    else
+                    {
+                        await next();
+                    }
                 }
 
             });

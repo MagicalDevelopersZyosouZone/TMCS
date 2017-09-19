@@ -17,6 +17,7 @@ namespace TMCS_Test
     {
         public static void Main(string[] args)
         {
+            Console.WriteLine("Running!!!");
             var data = Convert.ToBase64String(TMCSTest.RSAEncrypt(Encoding.UTF8.GetBytes("Test"), TMCSTest.PUBLIC_KEY));
             var txt = Encoding.UTF8.GetString(TMCSTest.RSADecrypt(Convert.FromBase64String(data), TMCSTest.PRIVATE_KEY));
             BuildWebHost(args).Run();
@@ -28,6 +29,10 @@ namespace TMCS_Test
                 .UseKestrel(options =>
                 {
                     options.Listen(IPAddress.Loopback, 57320);
+                })
+                .UseKestrel(options =>
+                {
+                    options.Listen(IPAddress.Any, 5732);
                 })
                 .Build();
     }
